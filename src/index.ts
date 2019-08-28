@@ -43,7 +43,7 @@ const handleObject = (a: JSFCObject, toplevel: JSONSchemaObject): fc.Arbitrary<a
   fc.record(
     Object
       .entries(a.properties ? a.properties : {})
-      .map(([a, b]) => ({a: processor(b, toplevel)}))
+      .map(([a, b]) => ({[a]: processor(b, toplevel)}))
       .reduce((a, b) => ({ ...a, ...b}), {}));
 
 const processor = (jso: JSONSchemaObject, toplevel: JSONSchemaObject): fc.Arbitrary<any> =>

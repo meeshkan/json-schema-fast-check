@@ -1,5 +1,5 @@
 import jsfc from "../src";
-import fc from "fast-check";
+import fc, { string } from "fast-check";
 import jsonschema from "jsonschema";
 import { JSONSchemaObject } from "../src/generated/json-schema-strict";
 
@@ -63,6 +63,22 @@ test("object is correctly defined", () => {
     type: "object",
     properties: {
       foo: { type: "string" },
+      bar: { type: "number" }
+    }
+  };
+  validate(schema as JSONSchemaObject);
+});
+
+test("$ref works", () => {
+  const schema = {
+    definitions: {
+      baz: {
+        type: "string"
+      }
+    },
+    type: "object",
+    properties: {
+      foo: { $ref: "#/definitions/baz" },
       bar: { type: "number" }
     }
   };

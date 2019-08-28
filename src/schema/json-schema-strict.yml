@@ -34,6 +34,8 @@ definitions:
         type: boolean
   JSFCNumber:
     type: object
+    required:
+      - type
     properties:
       type:
         const: number
