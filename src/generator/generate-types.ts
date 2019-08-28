@@ -137,7 +137,6 @@ const isRef = (u: unknown): u is RefSchema =>
 const isConst = (u: unknown): u is ConstSchema =>
   u && typeof u === "object" && (<ConstSchema>u).const !== undefined;
 
-
 const isAnyOf = (u: unknown): u is AnyOfSchema =>
   u && typeof u === "object" && (<AnyOfSchema>u).anyOf !== undefined;
 

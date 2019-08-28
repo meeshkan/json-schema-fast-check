@@ -3,10 +3,12 @@ import fc, { string } from "fast-check";
 import jsonschema from "jsonschema";
 import { JSONSchemaObject } from "../src/generated/json-schema-strict";
 
-const validate = (schema: JSONSchemaObject) =>
-  fc.assert(fc.property(jsfc(schema as JSONSchemaObject), (i) => 
-    jsonschema.validate(i, schema).valid
-  ));
+const validate = (schema: JSONSchemaObject) => {
+  const { arbitrary, hoister } = jsfc(schema as JSONSchemaObject);
+  fc.assert(
+    fc.property(arbitrary, i => jsonschema.validate(hoister(i), schema).valid)
+  );
+};
 
 test("integer is correctly defined", () => {
   const schema = { type: "integer" };
@@ -54,7 +56,7 @@ test("string is correctly defined", () => {
 });
 
 test("array is correctly defined", () => {
-  const schema = { type: "array", items: { type: "string" }};
+  const schema = { type: "array", items: { type: "string" } };
   validate(schema as JSONSchemaObject);
 });
 

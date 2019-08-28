@@ -8,6 +8,7 @@
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^12.7.2",
     "@types/prettier": "^1.18.2",
+    "@types/uuid": "^3.4.5",
     "codecov": "^3.5.0",
     "fp-ts": "^2.0.5",
     "io-ts-codegen": "^0.4.1",
@@ -33,6 +34,8 @@
   "dependencies": {
     "fast-check": "^1.16.2",
     "io-ts": "^2.0.1",
-    "jsonschema": "^1.2.4"
+    "jsonschema": "^1.2.4",
+    "randexp": "^0.5.3",
+    "uuid": "^3.3.3"
   }
 }
