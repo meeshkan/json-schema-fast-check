@@ -3,8 +3,8 @@ anyOf:
   - $ref: "#/definitions/JSFCInteger"
   - $ref: "#/definitions/JSFCNumber"
   - $ref: "#/definitions/JSFCString"
-  - $ref: "#/definitions/JSFCArray"
-  - $ref: "#/definitions/JSFCObject"
+  - $ref: "#/definitions/JSFCTopLevelArray"
+  - $ref: "#/definitions/JSFCTopLevelObject"
   - $ref: "#/definitions/JSFCReference"
 definitions:
   JSFCAnything:
@@ -65,6 +65,13 @@ definitions:
     properties:
       type:
         const: string
+  JSFCDefinitions:
+    type: object
+    properties:
+      definitions:
+        type: object
+        additionalProperties:
+          $ref: "#/definitions/JSFCAnything"
   JSFCArray:
     type: object
     required:
@@ -73,10 +80,6 @@ definitions:
     properties:
       type:
         const: array
-      definitions:
-        type: object
-        additionalProperties:
-          $ref: "#/definitions/JSFCAnything"
       items:
         $ref: "#/definitions/JSFCAnything"
   JSFCObject:
@@ -86,10 +89,6 @@ definitions:
     properties:
       type:
         const: object
-      definitions:
-        type: object
-        additionalProperties:
-          $ref: "#/definitions/JSFCAnything"
       required:
         type: array
         items:
@@ -104,3 +103,11 @@ definitions:
         type: object
         additionalProperties:
           $ref: "#/definitions/JSFCAnything"
+  JSFCTopLevelObject:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCObject"
+  JSFCTopLevelArray:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCArray"

@@ -5,10 +5,27 @@ import {
   JSFCString,
   JSFCArray,
   JSFCObject,
-  JSFCReference
+  JSFCReference,
+  JSFCTopLevelArray,
+  JSFCDefinitions,
+  JSFCTopLevelObject
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
+import RandExp from "randexp";
+import { integer, MersenneTwister19937 } from "random-js";
+// import powerSet from 'power-set-x';
+
+const makeRandExp = (r: RegExp, seed: number) => {
+  const ret = new RandExp(r);
+  ret.randInt = (from: number, to: number) => {
+    const mt = MersenneTwister19937.seed(seed);
+    return integer(from, to)(mt);
+  }
+  return ret;
+}
+// const char = () => fc.integer(0x20, 0x7e).map(String.fromCharCode);
+// const string = () => fc.array(fc.char()).map(arr => arr.join(''));
 
 interface JSFCOptions {
   patternPropertiesKey: string;
@@ -39,38 +56,64 @@ const handleString = (s: JSFCString) => fc.string();
 
 const handleReference = (
   r: JSFCReference,
-  toplevel: JSONSchemaObject,
-  options: JSFCOptions
+  toplevel: boolean,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
-  JSFCObject.is(toplevel) &&
-  toplevel.definitions &&
-  toplevel.definitions[r.$ref.split("/")[2]]
-    ? processor(toplevel.definitions[r.$ref.split("/")[2]], toplevel, options)
-    : (() => {
-        throw Error("wtf?");
-      })();
+  tie(r.$ref.split("/")[2])
+
+const handleDefinitions = (
+  d: JSFCDefinitions,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
+): Record<string, fc.Arbitrary<any>> =>
+  Object
+    .entries(d)
+    .map(([a, b]) => ({[a]: processor(b, false, options, tie)}))
+    .reduce((a, b) => ({...a, ...b}), {});
 
 const handleArray = (
   a: JSFCArray,
-  toplevel: JSONSchemaObject,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
+): fc.Arbitrary<any> => fc.array(processor(a.items, false, options, tie));
+
+const __MAIN__ = "__%@M4!N_$__"
+
+// TODO: use generics to combine toplevel functions
+const handleTopLevelArray = (
+  a: JSFCTopLevelArray,
   options: JSFCOptions
-): fc.Arbitrary<any> => fc.array(processor(a.items, toplevel, options));
+): fc.Arbitrary<any> => fc.letrec(tie => ({
+  ...handleDefinitions(a.definitions || {}, options, tie),
+  [__MAIN__]: handleArray(a, options, tie)
+}))[__MAIN__];
 
 const handleObject = (
   a: JSFCObject,
-  toplevel: JSONSchemaObject,
-  options: JSFCOptions
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   fc.record(
     Object.entries(a.properties ? a.properties : {})
-      .map(([a, b]) => ({ [a]: processor(b, toplevel, options) }))
+      .map(([a, b]) => ({ [a]: processor(b, false, options, tie) }))
       .reduce((a, b) => ({ ...a, ...b }), {})
   );
 
+const handleTopLevelObject = (
+  a: JSFCTopLevelObject,
+  options: JSFCOptions
+): fc.Arbitrary<any> => fc.letrec(tie => ({
+  ...handleDefinitions(a.definitions || {}, options, tie),
+  [__MAIN__]: handleObject(a, options, tie)
+}))[__MAIN__];
+  
+
 const processor = (
   jso: JSONSchemaObject,
-  toplevel: JSONSchemaObject,
-  options: JSFCOptions
+  toplevel: boolean,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   JSFCInteger.is(jso)
     ? handleInteger(jso)
@@ -79,13 +122,17 @@ const processor = (
     : JSFCString.is(jso)
     ? handleString(jso)
     : JSFCReference.is(jso)
-    ? handleReference(jso, toplevel, options)
+    ? handleReference(jso, false, options, tie)
+    : toplevel && JSFCTopLevelArray.is(jso)
+    ? handleTopLevelArray(jso, options)
+    : toplevel && JSFCTopLevelObject.is(jso)
+    ? handleTopLevelObject(jso, options)
     : JSFCArray.is(jso)
-    ? handleArray(jso, toplevel, options)
+    ? handleArray(jso, options, tie)
     : JSFCObject.is(jso)
-    ? handleObject(jso, toplevel, options)
+    ? handleObject(jso, options, tie)
     : (() => {
-        throw Error("wtf?");
+        throw Error("wtf? "+JSON.stringify(jso));
       })();
 
 const DEFAULT_OPTIONS = {
@@ -93,11 +140,25 @@ const DEFAULT_OPTIONS = {
   additionalPropertiesKey: uuid4()
 };
 
-const hoist = (i: any, k: string) => ({
+const hoistBase = (i: any, k: string) => ({
   ...Object.entries(i)
     .filter(([a]) => a !== k)
     .reduce((a, [b, c]) => ({ ...a, ...{ [b]: c } }), {}),
+});
+
+const hoist1L = (i: any, k: string) => ({
+  ...hoistBase(i, k),
   ...(Object.keys(i).indexOf(k) !== -1 ? i[k] : {})
+});
+
+const hoist2L = (i: any, k: string) => ({
+  ...hoistBase(i, k),
+  ...(Object.keys(i).indexOf(k) !== -1
+      ? Object
+        .entries(i)
+        .map(([_, b]) => b)
+        .reduce((a, b) => ({ ...a, ...b }), {})
+      : {})
 });
 
 const makeHoist = ({
@@ -108,15 +169,17 @@ const makeHoist = ({
     i instanceof Array
       ? i.map(a => ret(a))
       : typeof i === "object"
-      ? hoist(hoist(i, additionalPropertiesKey), patternPropertiesKey)
+      ? hoist2L(hoist1L(i, additionalPropertiesKey), patternPropertiesKey)
       : i;
   return ret;
 };
 
 export default (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) => {
   const opts = { ...DEFAULT_OPTIONS, ...(options ? options : {}) };
+  // TODO: make seperate functions for toplevel to avoid the no-op
+  const no_op_tie = (s: string) => fc.integer();
   return {
-    arbitrary: processor(jso, jso, opts),
+    arbitrary: processor(jso, true, opts, no_op_tie),
     hoister: makeHoist(opts)
   };
 };

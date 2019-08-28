@@ -51,6 +51,10 @@ interface AnyOfSchema {
   anyOf: JSONSchema[];
 }
 
+interface AllOfSchema {
+  allOf: JSONSchema[];
+}
+
 interface RefSchema {
   $ref: string;
 }
@@ -71,7 +75,9 @@ type JSONSchema =
   | ArraySchema
   | ObjectSchema
   | EmptySchema
-  | RefSchema;
+  | RefSchema
+  | AnyOfSchema
+  | AllOfSchema;
 
 function getRequiredProperties(schema: ObjectSchema): { [key: string]: true } {
   const required: { [key: string]: true } = {};
@@ -140,6 +146,9 @@ const isConst = (u: unknown): u is ConstSchema =>
 const isAnyOf = (u: unknown): u is AnyOfSchema =>
   u && typeof u === "object" && (<AnyOfSchema>u).anyOf !== undefined;
 
+const isAllOf = (u: unknown): u is AllOfSchema =>
+  u && typeof u === "object" && (<AllOfSchema>u).allOf !== undefined;
+
 const to = (schema: JSONSchema): t.TypeReference =>
   isRef(schema)
     ? t.identifier(schema.$ref.split("/").slice(-1)[0])
@@ -147,6 +156,8 @@ const to = (schema: JSONSchema): t.TypeReference =>
     ? t.literalCombinator(schema.const)
     : isAnyOf(schema)
     ? t.unionCombinator(schema.anyOf.map(i => to(i)))
+    : isAllOf(schema)
+    ? t.intersectionCombinator(schema.allOf.map(i => to(i)))
     : isRecord(schema)
     ? t.recordCombinator(t.stringType, to(schema.additionalProperties))
     : isObject(schema)

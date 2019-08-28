@@ -35,7 +35,9 @@
     "fast-check": "^1.16.2",
     "io-ts": "^2.0.1",
     "jsonschema": "^1.2.4",
+    "power-set-x": "^2.1.2",
     "randexp": "^0.5.3",
+    "random-js": "^2.1.0",
     "uuid": "^3.3.3"
   }
 }
