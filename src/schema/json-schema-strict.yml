@@ -7,6 +7,14 @@ anyOf:
   - $ref: "#/definitions/JSFCObject"
   - $ref: "#/definitions/JSFCReference"
 definitions:
+  JSFCAnything:
+    anyOf:
+      - $ref: "#/definitions/JSFCInteger"
+      - $ref: "#/definitions/JSFCNumber"
+      - $ref: "#/definitions/JSFCString"
+      - $ref: "#/definitions/JSFCArray"
+      - $ref: "#/definitions/JSFCObject"
+      - $ref: "#/definitions/JSFCReference"
   JSFCReference:
     type: object
     required:
@@ -68,21 +76,9 @@ definitions:
       definitions:
         type: object
         additionalProperties:
-          anyOf:
-            - $ref: "#/definitions/JSFCInteger"
-            - $ref: "#/definitions/JSFCNumber"
-            - $ref: "#/definitions/JSFCString"
-            - $ref: "#/definitions/JSFCArray"
-            - $ref: "#/definitions/JSFCObject"
-            - $ref: "#/definitions/JSFCReference"
+          $ref: "#/definitions/JSFCAnything"
       items:
-        anyOf:
-          - $ref: "#/definitions/JSFCInteger"
-          - $ref: "#/definitions/JSFCNumber"
-          - $ref: "#/definitions/JSFCString"
-          - $ref: "#/definitions/JSFCArray"
-          - $ref: "#/definitions/JSFCObject"
-          - $ref: "#/definitions/JSFCReference"
+        $ref: "#/definitions/JSFCAnything"
   JSFCObject:
     type: object
     required:
@@ -93,24 +89,18 @@ definitions:
       definitions:
         type: object
         additionalProperties:
-          anyOf:
-            - $ref: "#/definitions/JSFCInteger"
-            - $ref: "#/definitions/JSFCNumber"
-            - $ref: "#/definitions/JSFCString"
-            - $ref: "#/definitions/JSFCArray"
-            - $ref: "#/definitions/JSFCObject"
-            - $ref: "#/definitions/JSFCReference"
+          $ref: "#/definitions/JSFCAnything"
       required:
         type: array
         items:
           type: string
+      additionalProperties:
+        $ref: "#/definitions/JSFCAnything"
+      patternProperties:
+        type: object
+        additionalProperties:
+          $ref: "#/definitions/JSFCAnything"
       properties:
         type: object
         additionalProperties:
-          anyOf:
-            - $ref: "#/definitions/JSFCInteger"
-            - $ref: "#/definitions/JSFCNumber"
-            - $ref: "#/definitions/JSFCString"
-            - $ref: "#/definitions/JSFCArray"
-            - $ref: "#/definitions/JSFCObject"
-            - $ref: "#/definitions/JSFCReference"
+          $ref: "#/definitions/JSFCAnything"
