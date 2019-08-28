@@ -1,0 +1,38 @@
+{
+  "name": "json-schema-fast-check",
+  "version": "0.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/js-yaml": "^3.12.1",
+    "@types/mkdirp": "^0.5.2",
+    "@types/node": "^12.7.2",
+    "@types/prettier": "^1.18.2",
+    "codecov": "^3.5.0",
+    "fp-ts": "^2.0.5",
+    "io-ts-codegen": "^0.4.1",
+    "jest": "^24.9.0",
+    "jest-junit": "^8.0.0",
+    "js-yaml": "^3.13.1",
+    "mkdirp": "^0.5.1",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "compile": "ts-node ./src/generator/generate-types.ts && tsc",
+    "lint:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "jest",
+    "prepublish": "yarn compile && yarn lint && yarn test",
+    "test:ci": "yarn run coverage --ci --maxWorkers=2  --reporters=default --reporters=jest-junit",
+    "coverage": "yarn test --coverage",
+    "coverage:upload": "codecov"
+  },
+  "dependencies": {
+    "fast-check": "^1.16.2",
+    "io-ts": "^2.0.1",
+    "jsonschema": "^1.2.4"
+  }
+}

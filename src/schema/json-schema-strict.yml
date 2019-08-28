@@ -1,0 +1,114 @@
+type: object
+anyOf:
+  - $ref: "#/definitions/JSFCInteger"
+  - $ref: "#/definitions/JSFCNumber"
+  - $ref: "#/definitions/JSFCString"
+  - $ref: "#/definitions/JSFCArray"
+  - $ref: "#/definitions/JSFCObject"
+  - $ref: "#/definitions/JSFCReference"
+definitions:
+  JSFCReference:
+    type: object
+    required:
+      - $ref
+    properties:
+      $ref:
+        type: string
+  JSFCInteger:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        const: integer
+      multipleOf:
+        type: integer
+        minimum: 0
+      maximum:
+        type: integer
+      minimum:
+        type: integer
+      exclusiveMinimum:
+        type: boolean
+      exclusiveMaximum:
+        type: boolean
+  JSFCNumber:
+    type: object
+    properties:
+      type:
+        const: number
+      multipleOf:
+        type: integer
+        minimum: 0
+      maximum:
+        type: integer
+      minimum:
+        type: integer
+      exclusiveMinimum:
+        type: boolean
+      exclusiveMaximum:
+        type: boolean
+  JSFCString:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        const: string
+  JSFCArray:
+    type: object
+    required:
+      - type
+      - items
+    properties:
+      type:
+        const: array
+      definitions:
+        type: object
+        additionalProperties:
+          anyOf:
+            - $ref: "#/definitions/JSFCInteger"
+            - $ref: "#/definitions/JSFCNumber"
+            - $ref: "#/definitions/JSFCString"
+            - $ref: "#/definitions/JSFCArray"
+            - $ref: "#/definitions/JSFCObject"
+            - $ref: "#/definitions/JSFCReference"
+      items:
+        anyOf:
+          - $ref: "#/definitions/JSFCInteger"
+          - $ref: "#/definitions/JSFCNumber"
+          - $ref: "#/definitions/JSFCString"
+          - $ref: "#/definitions/JSFCArray"
+          - $ref: "#/definitions/JSFCObject"
+          - $ref: "#/definitions/JSFCReference"
+  JSFCObject:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        const: object
+      definitions:
+        type: object
+        additionalProperties:
+          anyOf:
+            - $ref: "#/definitions/JSFCInteger"
+            - $ref: "#/definitions/JSFCNumber"
+            - $ref: "#/definitions/JSFCString"
+            - $ref: "#/definitions/JSFCArray"
+            - $ref: "#/definitions/JSFCObject"
+            - $ref: "#/definitions/JSFCReference"
+      required:
+        type: array
+        items:
+          type: string
+      properties:
+        type: object
+        additionalProperties:
+          anyOf:
+            - $ref: "#/definitions/JSFCInteger"
+            - $ref: "#/definitions/JSFCNumber"
+            - $ref: "#/definitions/JSFCString"
+            - $ref: "#/definitions/JSFCArray"
+            - $ref: "#/definitions/JSFCObject"
+            - $ref: "#/definitions/JSFCReference"
