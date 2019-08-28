@@ -97,6 +97,13 @@ const handleObject = (
   fc.record(
     Object.entries(a.properties ? a.properties : {})
       .map(([a, b]) => ({ [a]: processor(b, false, options, tie) }))
+      .concat(a.additionalProperties ? [{
+        [options.additionalPropertiesKey]:
+          fc.dictionary(
+            fc.string(),
+            processor(a.additionalProperties, false, options, tie)
+          )
+      }]: [])
       .reduce((a, b) => ({ ...a, ...b }), {})
   );
 
@@ -107,7 +114,6 @@ const handleTopLevelObject = (
   ...handleDefinitions(a.definitions || {}, options, tie),
   [__MAIN__]: handleObject(a, options, tie)
 }))[__MAIN__];
-  
 
 const processor = (
   jso: JSONSchemaObject,
