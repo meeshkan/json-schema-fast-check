@@ -5,9 +5,8 @@ import { JSONSchemaObject } from "../src/generated/json-schema-strict";
 
 const validate = (schema: JSONSchemaObject) => {
   // test jsfc
-  const { arbitrary, hoister } = jsfc(schema);
   fc.assert(
-    fc.property(arbitrary, i => jsonschema.validate(hoister(i), schema).valid)
+    fc.property(jsfc(schema), i => jsonschema.validate(i, schema).valid)
   );
   // test generate
   expect(jsonschema.validate(generate(schema), schema).valid).toBe(true);
@@ -382,5 +381,44 @@ test("allOf at top level with definitions is correctly defined", () => {
     true
   );
   expect(jsonschema.validate({ z: "hello" }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("works with a schema from the json-schema.org website", () => {
+  const schema = {
+    $id: "https://example.com/arrays.schema.json",
+    $schema: "http://json-schema.org/draft-07/schema#",
+    description:
+      "A representation of a person, company, organization, or place",
+    type: "object",
+    properties: {
+      fruits: {
+        type: "array",
+        items: {
+          type: "string"
+        }
+      },
+      vegetables: {
+        type: "array",
+        items: { $ref: "#/definitions/veggie" }
+      }
+    },
+    definitions: {
+      veggie: {
+        type: "object",
+        required: ["veggieName", "veggieLike"],
+        properties: {
+          veggieName: {
+            type: "string",
+            description: "The name of the vegetable."
+          },
+          veggieLike: {
+            type: "boolean",
+            description: "Do I like this vegetable?"
+          }
+        }
+      }
+    }
+  };
   validate(schema as JSONSchemaObject);
 });

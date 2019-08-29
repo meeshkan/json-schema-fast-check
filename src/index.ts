@@ -403,16 +403,17 @@ const makeHoist = ({
       : i
   );
 
-const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) => ({
-  arbitrary: processor(jso, true, options, {}, (s: string) => fc.integer()),
-  hoister: makeHoist(options)
-});
+const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) =>
+  processor(jso, true, options, {}, (s: string) => fc.integer()).map(i =>
+    makeHoist(options)(i)
+  );
 
 const makeArbitrary = (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) =>
   internalDefault(jso, { ...DEFAULT_OPTIONS, ...(options ? options : {}) });
 
-export const generate = (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) => {
-  const { arbitrary, hoister } = makeArbitrary(jso, options);
-  return hoister(fc.sample(arbitrary)[0]);
-}
+export const generate = (
+  jso: JSONSchemaObject,
+  options?: Partial<JSFCOptions>
+) => fc.sample(makeArbitrary(jso, options))[0];
+
 export default makeArbitrary;
