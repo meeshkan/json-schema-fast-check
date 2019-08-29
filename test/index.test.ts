@@ -76,6 +76,12 @@ test("number is correctly defined with min/max", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("boolean is correctly defined", () => {
+  const schema = { type: "boolean" };
+  expect(jsonschema.validate(true, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
 test("string is correctly defined", () => {
   const schema = { type: "string" };
   expect(jsonschema.validate("foo", schema).valid).toBe(true);
@@ -101,6 +107,18 @@ test("faker string is correctly defined", () => {
 test("array is correctly defined", () => {
   const schema = { type: "array", items: { type: "string" } };
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(true);
+  expect(jsonschema.validate(["foo", "foo"], schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
+test("array with unique items is correctly defined", () => {
+  const schema = {
+    type: "array",
+    items: { type: "string" },
+    uniqueItems: true
+  };
+  expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(true);
+  expect(jsonschema.validate(["foo", "foo"], schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
 });
 
@@ -278,5 +296,46 @@ test("not with definitions is correctly defined", () => {
   };
   expect(jsonschema.validate([32], schema).valid).toBe(true);
   expect(jsonschema.validate(["foobar"], schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("allOf at top level is correctly defined", () => {
+  const schema = {
+    allOf: [
+      {
+        type: "object",
+        properties: { z: { type: "string" } },
+        required: ["z"]
+      },
+      { type: "object", properties: { q: { type: "string" } }, required: ["q"] }
+    ]
+  };
+  expect(jsonschema.validate({ z: "hello", q: "world" }, schema).valid).toBe(
+    true
+  );
+  expect(jsonschema.validate({ z: "hello" }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("allOf at top level with definitions is correctly defined", () => {
+  const schema = {
+    definitions: {
+      z: {
+        type: "object",
+        properties: { z: { type: "string" } },
+        required: ["z"]
+      },
+      q: {
+        type: "object",
+        properties: { q: { type: "string" } },
+        required: ["q"]
+      }
+    },
+    allOf: [{ $ref: "#/definitions/z" }, { $ref: "#/definitions/q" }]
+  };
+  expect(jsonschema.validate({ z: "hello", q: "world" }, schema).valid).toBe(
+    true
+  );
+  expect(jsonschema.validate({ z: "hello" }, schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
 });

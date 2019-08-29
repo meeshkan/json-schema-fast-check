@@ -2,6 +2,7 @@ type: object
 anyOf:
   - $ref: "#/definitions/JSFCTopLevelInteger"
   - $ref: "#/definitions/JSFCTopLevelNumber"
+  - $ref: "#/definitions/JSFCTopLevelBoolean"
   - $ref: "#/definitions/JSFCTopLevelString"
   - $ref: "#/definitions/JSFCTopLevelRegex"
   - $ref: "#/definitions/JSFCTopLevelArray"
@@ -17,6 +18,7 @@ definitions:
     anyOf:
       - $ref: "#/definitions/JSFCInteger"
       - $ref: "#/definitions/JSFCNumber"
+      - $ref: "#/definitions/JSFCBoolean"
       - $ref: "#/definitions/JSFCString"
       - $ref: "#/definitions/JSFCRegex"
       - $ref: "#/definitions/JSFCArray"
@@ -102,6 +104,13 @@ definitions:
         type: integer
       minimum:
         type: integer
+  JSFCBoolean:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        const: boolean
   JSFCRegex:
     type: object
     required:
@@ -288,6 +297,8 @@ definitions:
         const: array
       items:
         $ref: "#/definitions/JSFCAnything"
+      uniqueItems:
+        type: boolean
   JSFCObject:
     type: object
     required:
@@ -319,6 +330,10 @@ definitions:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCNumber"
+  JSFCTopLevelBoolean:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCBoolean"
   JSFCTopLevelString:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"

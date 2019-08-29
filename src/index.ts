@@ -17,7 +17,10 @@ import {
   JSFCAnyOf,
   JSFCOneOf,
   JSFCTopLevelNot,
-  JSFCNot
+  JSFCNot,
+  JSFCTopLevelAllOf,
+  JSFCAllOf,
+  JSFCBoolean
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -42,6 +45,7 @@ const rex = (s: string) =>
 interface JSFCOptions {
   patternPropertiesKey: string;
   additionalPropertiesKey: string;
+  allOfKey: string;
 }
 
 // TODO: implement multipleOf
@@ -65,6 +69,8 @@ const handleNumber = (n: JSFCNumber) => {
     typeof n.maximum === "number" ? n.maximum : maxnumber
   );
 };
+
+const handleBoolean = () => fc.boolean();
 
 const BIG = 42;
 const makeFakeStuff = (fkr: string) =>
@@ -99,7 +105,9 @@ const handleArray = (
   definitions: JSFCDefinitions,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
-  fc.array(processor(a.items, false, options, definitions, tie));
+  (a.uniqueItems ? fc.set : fc.array)(
+    processor(a.items, false, options, definitions, tie)
+  );
 
 const __MAIN__ = "__%@M4!N_$__";
 
@@ -228,6 +236,31 @@ const handleTopLevelAnyOfOrOneOf = (
     [__MAIN__]: handleAnyOfOrOneOf(a, options, a.definitions || {}, tie)
   }))[__MAIN__];
 
+const handleAllOf = (
+  a: JSFCAllOf,
+  options: JSFCOptions,
+  definitions: JSFCDefinitions,
+  tie: (s: string) => fc.Arbitrary<any>
+) =>
+  fc.record({
+    [options.allOfKey]: fc.record(
+      a.allOf
+        .map(i => ({
+          [uuid4()]: processor(i, false, options, definitions, tie)
+        }))
+        .reduce((a, b) => ({ ...a, ...b }), {})
+    )
+  });
+
+const handleTopLevelAllOf = (
+  a: JSFCTopLevelAllOf,
+  options: JSFCOptions
+): fc.Arbitrary<any> =>
+  fc.letrec(tie => ({
+    ...handleDefinitions(a.definitions || {}, options, tie),
+    [__MAIN__]: handleAllOf(a, options, a.definitions || {}, tie)
+  }))[__MAIN__];
+
 const handleNot = (a: JSFCNot, definitions: JSFCDefinitions) =>
   fc
     .anything()
@@ -247,6 +280,8 @@ const processor = (
     ? handleInteger(jso)
     : JSFCNumber.is(jso)
     ? handleNumber(jso)
+    : JSFCBoolean.is(jso)
+    ? handleBoolean()
     : JSFCRegex.is(jso)
     ? handleRegex(jso)
     : JSFCString.is(jso)
@@ -261,6 +296,8 @@ const processor = (
     ? handleTopLevelAnyOfOrOneOf(jso, options)
     : toplevel && JSFCTopLevelOneOf.is(jso)
     ? handleTopLevelAnyOfOrOneOf(jso, options)
+    : toplevel && JSFCTopLevelAllOf.is(jso)
+    ? handleTopLevelAllOf(jso, options)
     : toplevel && JSFCTopLevelNot.is(jso)
     ? handleTopLevelNot(jso)
     : JSFCArray.is(jso)
@@ -273,6 +310,8 @@ const processor = (
     ? handleAnyOfOrOneOf(jso, options, definitions, tie)
     : JSFCNot.is(jso)
     ? handleNot(jso, definitions)
+    : JSFCAllOf.is(jso)
+    ? handleAllOf(jso, options, definitions, tie)
     : JSFCEmpty.is(jso)
     ? fc.anything()
     : (() => {
@@ -281,7 +320,8 @@ const processor = (
 
 const DEFAULT_OPTIONS = {
   patternPropertiesKey: uuid4(),
-  additionalPropertiesKey: uuid4()
+  additionalPropertiesKey: uuid4(),
+  allOfKey: uuid4()
 };
 
 const hoistBase = (i: any, k: string) => ({
@@ -306,7 +346,8 @@ const hoist2L = (i: any, k: string) => ({
 
 const makeHoist = ({
   additionalPropertiesKey,
-  patternPropertiesKey
+  patternPropertiesKey,
+  allOfKey
 }: JSFCOptions) =>
   Y((ret: (z: any) => any) => (i: any): any =>
     i === null
@@ -314,7 +355,10 @@ const makeHoist = ({
       : i instanceof Array
       ? i.map(a => ret(a))
       : typeof i === "object"
-      ? hoist2L(hoist1L(i, additionalPropertiesKey), patternPropertiesKey)
+      ? hoist2L(
+          hoist2L(hoist1L(i, additionalPropertiesKey), patternPropertiesKey),
+          allOfKey
+        )
       : i
   );
 
