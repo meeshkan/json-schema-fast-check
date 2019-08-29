@@ -100,6 +100,22 @@ test("object with no additional properties is correctly defined", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("object with required properties and no additional properties is correctly defined", () => {
+  const schema = {
+    type: "object",
+    required: ["foo"],
+    properties: {
+      foo: { type: "string" },
+      bar: { type: "number" },
+      baz: { type: "integer" }
+    },
+    additionalProperties: false
+  };
+  expect(jsonschema.validate({ foo: "a", bar: 0.0 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ bar: 0.0 }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
 test("$ref works", () => {
   const schema = {
     definitions: {

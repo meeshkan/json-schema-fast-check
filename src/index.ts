@@ -8,14 +8,15 @@ import {
   JSFCReference,
   JSFCTopLevelArray,
   JSFCDefinitions,
-  JSFCTopLevelObject
+  JSFCTopLevelObject,
+  JSFCAnything
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
 import RandExp from "randexp";
 import { Y } from "variadic-y";
 import { integer, MersenneTwister19937 } from "random-js";
-// import powerSet from 'power-set-x';
+import power from "./power";
 
 const makeRandExp = (r: RegExp, seed: number) => {
   const ret = new RandExp(r);
@@ -87,7 +88,83 @@ const handleTopLevelArray = (
     [__MAIN__]: handleArray(a, options, tie)
   }))[__MAIN__];
 
+const makePowerObject = <T>(
+  properties: Record<string, T>,
+  required: string[]
+) =>
+  power(Object.keys(properties).filter(i => required.indexOf(i) === -1)).map(
+    p =>
+      Object.keys(properties)
+        .filter(i => required.indexOf(i) !== -1)
+        .concat(p)
+        .map(j => ({ [j]: properties[j] }))
+        .reduce((a, b) => ({ ...a, ...b }), {})
+  );
+
+const handleObjectInternal = (
+  properties: Record<string, JSFCAnything>,
+  required: string[],
+  additionalProperties: Record<string, fc.Arbitrary<any>>,
+  patternProperties: Record<string, fc.Arbitrary<any>>,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
+) =>
+  fc.oneof(
+    ...makePowerObject(
+      Object.entries(properties)
+        .map(([a, b]) => ({ [a]: processor(b, false, options, tie) }))
+        .reduce((a, b) => ({ ...a, ...b }), {}),
+      required
+    ).map(p =>
+      fc.record({
+        ...p,
+        ...additionalProperties,
+        ...patternProperties
+      })
+    )
+  );
+
 const handleObject = (
+  a: JSFCObject,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
+): fc.Arbitrary<any> =>
+  handleObjectInternal(
+    a.properties || {},
+    a.required || [],
+    typeof a.additionalProperties === "boolean"
+      ? a.additionalProperties
+        ? {
+            [options.additionalPropertiesKey]: fc.dictionary(
+              fc.string(),
+              fc.anything()
+            )
+          }
+        : {}
+      : a.additionalProperties
+      ? {
+          [options.additionalPropertiesKey]: fc.dictionary(
+            fc.string(),
+            processor(a.additionalProperties, false, options, tie)
+          )
+        }
+      : {},
+    a.patternProperties
+      ? {
+          [options.patternPropertiesKey]: fc.record(
+            Object.entries(a.patternProperties)
+              .map(([q, r]) => ({
+                [q]: fc.dictionary(rex(q), processor(r, false, options, tie))
+              }))
+              .reduce((q, r) => ({ ...q, ...r }), {})
+          )
+        }
+      : {},
+    options,
+    tie
+  );
+
+const handleObjectOld = (
   a: JSFCObject,
   options: JSFCOptions,
   tie: (s: string) => fc.Arbitrary<any>
@@ -202,12 +279,14 @@ const hoist2L = (i: any, k: string) => ({
 const makeHoist = ({
   additionalPropertiesKey,
   patternPropertiesKey
-}: JSFCOptions) => Y((ret: (z: any) => any) => (i: any): any =>
+}: JSFCOptions) =>
+  Y((ret: (z: any) => any) => (i: any): any =>
     i instanceof Array
       ? i.map(a => ret(a))
       : typeof i === "object"
       ? hoist2L(hoist1L(i, additionalPropertiesKey), patternPropertiesKey)
-      : i);
+      : i
+  );
 
 const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) => ({
   arbitrary: processor(jso, true, options, (s: string) => fc.integer()),
