@@ -13,6 +13,7 @@ import {
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
 import RandExp from "randexp";
+import { Y } from "variadic-y";
 import { integer, MersenneTwister19937 } from "random-js";
 // import powerSet from 'power-set-x';
 
@@ -201,15 +202,12 @@ const hoist2L = (i: any, k: string) => ({
 const makeHoist = ({
   additionalPropertiesKey,
   patternPropertiesKey
-}: JSFCOptions) => {
-  const ret = (i: any): any =>
+}: JSFCOptions) => Y((ret: (z: any) => any) => (i: any): any =>
     i instanceof Array
       ? i.map(a => ret(a))
       : typeof i === "object"
       ? hoist2L(hoist1L(i, additionalPropertiesKey), patternPropertiesKey)
-      : i;
-  return ret;
-};
+      : i);
 
 const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) => ({
   arbitrary: processor(jso, true, options, (s: string) => fc.integer()),

@@ -38,6 +38,7 @@
     "power-set-x": "^2.1.2",
     "randexp": "^0.5.3",
     "random-js": "^2.1.0",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "variadic-y": "^1.0.1"
   }
 }

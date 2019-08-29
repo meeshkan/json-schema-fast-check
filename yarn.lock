@@ -4037,6 +4037,11 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
+variadic-y@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/variadic-y/-/variadic-y-1.0.1.tgz#d8002826fefc40ed983aafb0afdc016fa5db564d"
+  integrity sha512-QC8rAs6I6L4RWU5EJFU9iXkYlMOA7NsO07HKZha4AmYB7fGNriVgb9Bs17NlzLqVvFOw/0vejljYV8W8lK42ug==
+
 verror@1.10.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/verror/-/verror-1.10.0.tgz#3a105ca17053af55d6e270c1f8288682e18da400"
