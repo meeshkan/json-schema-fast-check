@@ -211,12 +211,10 @@ const makeHoist = ({
   return ret;
 };
 
-export default (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) => {
-  const opts = { ...DEFAULT_OPTIONS, ...(options ? options : {}) };
-  // TODO: make seperate functions for toplevel to avoid the no-op
-  const no_op_tie = (s: string) => fc.integer();
-  return {
-    arbitrary: processor(jso, true, opts, no_op_tie),
-    hoister: makeHoist(opts)
-  };
-};
+const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) => ({
+  arbitrary: processor(jso, true, options, (s: string) => fc.integer()),
+  hoister: makeHoist(options)
+});
+
+export default (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) =>
+  internalDefault(jso, { ...DEFAULT_OPTIONS, ...(options ? options : {}) });
