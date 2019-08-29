@@ -1,13 +1,16 @@
-import jsfc from "../src";
+import jsfc, { generate } from "../src";
 import fc from "fast-check";
 import jsonschema from "jsonschema";
 import { JSONSchemaObject } from "../src/generated/json-schema-strict";
 
 const validate = (schema: JSONSchemaObject) => {
+  // test jsfc
   const { arbitrary, hoister } = jsfc(schema);
   fc.assert(
     fc.property(arbitrary, i => jsonschema.validate(hoister(i), schema).valid)
   );
+  // test generate
+  expect(jsonschema.validate(generate(schema), schema).valid).toBe(true);
 };
 
 test("empty schema is correctly defined", () => {

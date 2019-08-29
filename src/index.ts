@@ -408,5 +408,11 @@ const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) => ({
   hoister: makeHoist(options)
 });
 
-export default (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) =>
+const makeArbitrary = (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) =>
   internalDefault(jso, { ...DEFAULT_OPTIONS, ...(options ? options : {}) });
+
+export const generate = (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) => {
+  const { arbitrary, hoister } = makeArbitrary(jso, options);
+  return hoister(fc.sample(arbitrary)[0]);
+}
+export default makeArbitrary;
