@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/unmock/json-schema-fast-check.svg?style=svg)](https://circleci.com/gh/unmock/json-schema-fast-check)[![codecov](https://codecov.io/gh/unmock/json-schema-fast-check/branch/dev/graph/badge.svg)](https://codecov.io/gh/unmock/json-schema-fast-check)
+
 # json-schema-fast-check
 
 JSON Schema is a useful way to define input and output schemas.
