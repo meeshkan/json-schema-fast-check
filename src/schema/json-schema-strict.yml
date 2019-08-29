@@ -6,6 +6,7 @@ anyOf:
   - $ref: "#/definitions/JSFCTopLevelArray"
   - $ref: "#/definitions/JSFCTopLevelObject"
   - $ref: "#/definitions/JSFCReference"
+  - $ref: "#/definitions/JSFCEmpty"
 definitions:
   JSFCAnything:
     anyOf:
@@ -15,6 +16,9 @@ definitions:
       - $ref: "#/definitions/JSFCArray"
       - $ref: "#/definitions/JSFCObject"
       - $ref: "#/definitions/JSFCReference"
+      - $ref: "#/definitions/JSFCEmpty"
+  JSFCEmpty:
+    type: object
   JSFCReference:
     type: object
     required:

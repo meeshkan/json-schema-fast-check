@@ -32,7 +32,7 @@ interface ArraySchema {
 
 interface ObjectSchema {
   type: "object";
-  properties: { [key: string]: JSONSchema };
+  properties?: { [key: string]: JSONSchema };
   required?: Array<string>;
   patternProperties?: { "^x-"?: {} };
 }
@@ -40,11 +40,6 @@ interface ObjectSchema {
 interface StringEnumSchema {
   type: "string";
   enum: string[];
-}
-
-interface PatternedRecordSchema {
-  type: "object";
-  patternProperties: { [key: string]: JSONSchema };
 }
 
 interface RecordSchema {
@@ -97,8 +92,8 @@ function toInterfaceCombinator(
 ): t.InterfaceCombinator | t.BrandCombinator {
   const required = getRequiredProperties(schema);
   const out = t.interfaceCombinator(
-    Object.keys(schema.properties).map(key =>
-      t.property(key, to(schema.properties[key]), !required.hasOwnProperty(key))
+    Object.entries(schema.properties || {}).map(([k, v]) =>
+      t.property(k, to(v), !required.hasOwnProperty(k))
     )
   );
   return out;
@@ -132,17 +127,8 @@ const isRecord = (u: unknown): u is RecordSchema =>
   (<ObjectSchema>u).properties === undefined &&
   typeof (<RecordSchema>u).additionalProperties === "object";
 
-const isPatternedRecord = (u: unknown): u is PatternedRecordSchema =>
-  u &&
-  typeof u === "object" &&
-  (<ObjectSchema>u).properties === undefined &&
-  typeof (<PatternedRecordSchema>u).patternProperties === "object";
-
 const isObject = (u: unknown): u is ObjectSchema =>
-  u &&
-  typeof u === "object" &&
-  (<ObjectSchema>u).type === "object" &&
-  (<ObjectSchema>u).properties !== undefined;
+  u && typeof u === "object" && (<ObjectSchema>u).type === "object";
 
 const isRef = (u: unknown): u is RefSchema =>
   u && typeof u === "object" && (<RefSchema>u).$ref !== undefined;
@@ -169,13 +155,6 @@ const to = (schema: JSONSchema): t.TypeReference =>
     ? t.recordCombinator(t.stringType, to(schema.additionalProperties))
     : isObject(schema)
     ? toInterfaceCombinator(schema)
-    : isPatternedRecord(schema)
-    ? t.recordCombinator(
-        t.stringType,
-        to(Object.entries(schema.patternProperties).filter(
-          ([a]) => a !== "^x-"
-        )[0][1] as JSONSchema)
-      )
     : isArray(schema)
     ? t.arrayCombinator(to(schema.items))
     : isNumber(schema)

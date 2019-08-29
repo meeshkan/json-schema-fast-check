@@ -10,6 +10,12 @@ const validate = (schema: JSONSchemaObject) => {
   );
 };
 
+test("empty schema is correctly defined", () => {
+  const schema = {};
+  expect(jsonschema.validate({ foo: [1, "bar"] }, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
 test("integer is correctly defined", () => {
   const schema = { type: "integer" };
   expect(jsonschema.validate(42, schema).valid).toBe(true);

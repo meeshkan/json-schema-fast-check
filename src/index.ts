@@ -9,7 +9,8 @@ import {
   JSFCTopLevelArray,
   JSFCDefinitions,
   JSFCTopLevelObject,
-  JSFCAnything
+  JSFCAnything,
+  JSFCEmpty
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -35,14 +36,15 @@ interface JSFCOptions {
   additionalPropertiesKey: string;
 }
 
-const z = <T>(t: T) => { console.log("FUCK", t); return t; }
 // TODO: implement multipleOf
 const handleInteger = (i: JSFCInteger) => {
   const minint = -2147483648;
   const maxint = 2147483647;
   return fc.integer(
-    (typeof i.minimum === "number" ? i.minimum : minint) + (i.exclusiveMinimum ? 1 : 0),
-    (typeof i.maximum === "number" ? i.maximum : maxint) - (i.exclusiveMaximum ? 1 : 0)
+    (typeof i.minimum === "number" ? i.minimum : minint) +
+      (i.exclusiveMinimum ? 1 : 0),
+    (typeof i.maximum === "number" ? i.maximum : maxint) -
+      (i.exclusiveMaximum ? 1 : 0)
   );
 };
 
@@ -258,6 +260,8 @@ const processor = (
     ? handleArray(jso, options, tie)
     : JSFCObject.is(jso)
     ? handleObject(jso, options, tie)
+    : JSFCEmpty.is(jso)
+    ? fc.anything()
     : (() => {
         throw Error("wtf? " + JSON.stringify(jso));
       })();
@@ -292,7 +296,9 @@ const makeHoist = ({
   patternPropertiesKey
 }: JSFCOptions) =>
   Y((ret: (z: any) => any) => (i: any): any =>
-    i instanceof Array
+    i === null
+      ? i
+      : i instanceof Array
       ? i.map(a => ret(a))
       : typeof i === "object"
       ? hoist2L(hoist1L(i, additionalPropertiesKey), patternPropertiesKey)
