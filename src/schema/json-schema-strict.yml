@@ -6,6 +6,7 @@ anyOf:
   - $ref: "#/definitions/JSFCTopLevelString"
   - $ref: "#/definitions/JSFCTopLevelRegex"
   - $ref: "#/definitions/JSFCTopLevelArray"
+  - $ref: "#/definitions/JSFCTopLevelTuple"
   - $ref: "#/definitions/JSFCTopLevelObject"
   - $ref: "#/definitions/JSFCTopLevelAnyOf"
   - $ref: "#/definitions/JSFCTopLevelOneOf"
@@ -22,6 +23,7 @@ definitions:
       - $ref: "#/definitions/JSFCString"
       - $ref: "#/definitions/JSFCRegex"
       - $ref: "#/definitions/JSFCArray"
+      - $ref: "#/definitions/JSFCTuple"
       - $ref: "#/definitions/JSFCObject"
       - $ref: "#/definitions/JSFCAnyOf"
       - $ref: "#/definitions/JSFCOneOf"
@@ -287,6 +289,18 @@ definitions:
         type: object
         additionalProperties:
           $ref: "#/definitions/JSFCAnything"
+  JSFCTuple:
+    type: object
+    required:
+      - type
+      - items
+    properties:
+      type:
+        const: array
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/JSFCAnything"
   JSFCArray:
     type: object
     required:
@@ -376,6 +390,10 @@ definitions:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCArray"
+  JSFCTopLevelTuple:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCTuple"
   JSFCTopLevelReference:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"

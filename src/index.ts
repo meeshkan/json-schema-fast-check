@@ -20,7 +20,9 @@ import {
   JSFCNot,
   JSFCTopLevelAllOf,
   JSFCAllOf,
-  JSFCBoolean
+  JSFCBoolean,
+  JSFCTuple,
+  JSFCTopLevelTuple
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -28,6 +30,7 @@ import RandExp from "randexp";
 import { Y } from "variadic-y";
 import { integer, MersenneTwister19937 } from "random-js";
 import power from "./power";
+import handleTupleInternal from "./handleTupleInternal";
 import faker from "faker";
 import iso from "is-subset-of";
 import jsonschema from "jsonschema";
@@ -122,6 +125,26 @@ const handleTopLevelArray = (
   fc.letrec(tie => ({
     ...handleDefinitions(a.definitions || {}, options, tie),
     [__MAIN__]: handleArray(a, options, a.definitions || {}, tie)
+  }))[__MAIN__];
+
+const handleTuple = (
+  a: JSFCTuple,
+  options: JSFCOptions,
+  definitions: JSFCDefinitions,
+  tie: (s: string) => fc.Arbitrary<any>
+): fc.Arbitrary<any> =>
+  handleTupleInternal(
+    a.items.map(i => processor(i, false, options, definitions, tie))
+  );
+
+// TODO: use generics to combine toplevel functions
+const handleTopLevelTuple = (
+  a: JSFCTopLevelTuple,
+  options: JSFCOptions
+): fc.Arbitrary<any> =>
+  fc.letrec(tie => ({
+    ...handleDefinitions(a.definitions || {}, options, tie),
+    [__MAIN__]: handleTuple(a, options, a.definitions || {}, tie)
   }))[__MAIN__];
 
 const makePowerObject = <T>(
@@ -304,6 +327,8 @@ const processor = (
     ? handleReference(jso, tie)
     : toplevel && JSFCTopLevelArray.is(jso)
     ? handleTopLevelArray(jso, options)
+    : toplevel && JSFCTopLevelTuple.is(jso)
+    ? handleTopLevelTuple(jso, options)
     : toplevel && JSFCTopLevelObject.is(jso)
     ? handleTopLevelObject(jso, options)
     : toplevel && JSFCTopLevelAnyOf.is(jso)
@@ -316,6 +341,8 @@ const processor = (
     ? handleTopLevelNot(jso)
     : JSFCArray.is(jso)
     ? handleArray(jso, options, definitions, tie)
+    : JSFCTuple.is(jso)
+    ? handleTuple(jso, options, definitions, tie)
     : JSFCObject.is(jso)
     ? handleObject(jso, options, definitions, tie)
     : JSFCAnyOf.is(jso)

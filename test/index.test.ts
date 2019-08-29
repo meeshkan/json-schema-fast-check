@@ -134,6 +134,17 @@ test("array with unique items is correctly defined", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("tuple is correctly defined", () => {
+  const schema = {
+    type: "array",
+    items: [{ type: "string" }, { type: "number" }, { type: "boolean" }]
+  };
+  expect(jsonschema.validate(["foo", 1, true], schema).valid).toBe(true);
+  expect(jsonschema.validate(["bar", 3, false], schema).valid).toBe(true);
+  expect(jsonschema.validate([3, 3, false], schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
 test("object is correctly defined", () => {
   const schema = {
     type: "object",
