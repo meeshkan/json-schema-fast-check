@@ -69,8 +69,13 @@ Generates a single valid JSON object that conforms to the schema.
 
 The actual schema used here is not JSON Schema but rather a subset of JSON Schema called "The Subest of JSON Schema I Was Not Too Lazy To Define." I also added some `faker-js` sugar (see the tests).
 
+## Todo
+
 There is plenty of stuff that is not implemented yet.  I'd really appreciate your help!
 
 * `minProperties` and `maxProperties` for objects
 * `additionalItems` for arrays
 * `tuples` bigger than length 16
+* `if/then/else` syntax
+* proper use of `oneOf`
+* use objects as `dependencies` as well as arrays
