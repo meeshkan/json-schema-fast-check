@@ -70,8 +70,7 @@ const makeFakeStuff = (fkr: string) =>
 const handleString = (s: JSFCString) =>
   s.faker ? makeFakeStuff(s.faker) : fc.string();
 
-const handleRegex = (s: JSFCRegex) =>
-  rex(s.pattern);
+const handleRegex = (s: JSFCRegex) => rex(s.pattern);
 
 const handleReference = (
   r: JSFCReference,

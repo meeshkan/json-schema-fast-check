@@ -83,12 +83,14 @@ test("string is correctly defined", () => {
 });
 
 test("string with pattern is correctly defined", () => {
-  const schema = { type: "string", pattern: "^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$" };
+  const schema = {
+    type: "string",
+    pattern: "^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$"
+  };
   expect(jsonschema.validate("555-1212", schema).valid).toBe(true);
   expect(jsonschema.validate("foo", schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
 });
-
 
 test("faker string is correctly defined", () => {
   const schema = { type: "string", faker: "address.zipCode" };
