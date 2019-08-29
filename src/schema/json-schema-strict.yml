@@ -8,6 +8,8 @@ anyOf:
   - $ref: "#/definitions/JSFCTopLevelObject"
   - $ref: "#/definitions/JSFCTopLevelAnyOf"
   - $ref: "#/definitions/JSFCTopLevelOneOf"
+  - $ref: "#/definitions/JSFCTopLevelAllOf"
+  - $ref: "#/definitions/JSFCTopLevelNot"
   - $ref: "#/definitions/JSFCTopLevelReference"
   - $ref: "#/definitions/JSFCTopLevelEmpty"
 definitions:
@@ -21,6 +23,8 @@ definitions:
       - $ref: "#/definitions/JSFCObject"
       - $ref: "#/definitions/JSFCAnyOf"
       - $ref: "#/definitions/JSFCOneOf"
+      - $ref: "#/definitions/JSFCAllOf"
+      - $ref: "#/definitions/JSFCNot"
       - $ref: "#/definitions/JSFCReference"
       - $ref: "#/definitions/JSFCEmpty"
   JSFCEmpty:
@@ -34,6 +38,22 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/JSFCAnything"
+  JSFCAllOf:
+    type: object
+    required:
+      - allOf
+    properties:
+      allOf:
+        type: array
+        items:
+          $ref: "#/definitions/JSFCAnything"
+  JSFCNot:
+    type: object
+    required:
+      - not
+    properties:
+      not:
+        $ref: "#/definitions/JSFCAnything"
   JSFCOneOf:
     type: object
     required:
@@ -319,6 +339,14 @@ definitions:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCAnyOf"
+  JSFCTopLevelAllOf:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCAllOf"
+  JSFCTopLevelNot:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCNot"
   JSFCTopLevelArray:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"

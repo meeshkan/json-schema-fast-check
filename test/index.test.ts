@@ -203,12 +203,80 @@ test("object with pattern properties is correctly defined", () => {
 
 test("anyOf at top level is correctly defined", () => {
   const schema = {
-    anyOf: [{type: "string"}, {type: "number"}]
+    anyOf: [{ type: "string" }, { type: "number" }]
   };
   expect(jsonschema.validate(32, schema).valid).toBe(true);
-  expect(
-    jsonschema.validate("foobar", schema).valid
-  ).toBe(true);
+  expect(jsonschema.validate("foobar", schema).valid).toBe(true);
   expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("anyOf internal level is correctly defined", () => {
+  const schema = {
+    definitions: {
+      foo: { type: "number" },
+      bar: { type: "string" }
+    },
+    type: "object",
+    properties: {
+      z: {
+        anyOf: [{ $ref: "#/definitions/foo" }, { $ref: "#/definitions/bar" }]
+      }
+    }
+  };
+  expect(jsonschema.validate({ z: 1 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ z: 2 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ z: { z: 1 } }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("oneOf at top level is correctly defined", () => {
+  const schema = {
+    oneOf: [{ type: "string" }, { type: "number" }]
+  };
+  expect(jsonschema.validate(32, schema).valid).toBe(true);
+  expect(jsonschema.validate("foobar", schema).valid).toBe(true);
+  expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("not at top level is correctly defined", () => {
+  const schema = {
+    not: { type: "string" }
+  };
+  expect(jsonschema.validate(32, schema).valid).toBe(true);
+  expect(jsonschema.validate("foobar", schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("not at top level with definitions is correctly defined", () => {
+  const schema = {
+    definitions: {
+      foo: { type: "string" }
+    },
+    not: { $ref: "#/definitions/foo" }
+  };
+  expect(jsonschema.validate(32, schema).valid).toBe(true);
+  expect(jsonschema.validate("foobar", schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("not is correctly defined", () => {
+  const schema = { type: "array", items: { not: { type: "string" } } };
+  expect(jsonschema.validate([32, true], schema).valid).toBe(true);
+  expect(jsonschema.validate([32, "foobar"], schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("not with definitions is correctly defined", () => {
+  const schema = {
+    definitions: {
+      foo: { type: "string" }
+    },
+    type: "array",
+    items: { not: { $ref: "#/definitions/foo" } }
+  };
+  expect(jsonschema.validate([32], schema).valid).toBe(true);
+  expect(jsonschema.validate(["foobar"], schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
 });
