@@ -1,13 +1,15 @@
 type: object
 anyOf:
-  - $ref: "#/definitions/JSFCInteger"
-  - $ref: "#/definitions/JSFCNumber"
-  - $ref: "#/definitions/JSFCString"
-  - $ref: "#/definitions/JSFCRegex"
+  - $ref: "#/definitions/JSFCTopLevelInteger"
+  - $ref: "#/definitions/JSFCTopLevelNumber"
+  - $ref: "#/definitions/JSFCTopLevelString"
+  - $ref: "#/definitions/JSFCTopLevelRegex"
   - $ref: "#/definitions/JSFCTopLevelArray"
   - $ref: "#/definitions/JSFCTopLevelObject"
-  - $ref: "#/definitions/JSFCReference"
-  - $ref: "#/definitions/JSFCEmpty"
+  - $ref: "#/definitions/JSFCTopLevelAnyOf"
+  - $ref: "#/definitions/JSFCTopLevelOneOf"
+  - $ref: "#/definitions/JSFCTopLevelReference"
+  - $ref: "#/definitions/JSFCTopLevelEmpty"
 definitions:
   JSFCAnything:
     anyOf:
@@ -17,10 +19,30 @@ definitions:
       - $ref: "#/definitions/JSFCRegex"
       - $ref: "#/definitions/JSFCArray"
       - $ref: "#/definitions/JSFCObject"
+      - $ref: "#/definitions/JSFCAnyOf"
+      - $ref: "#/definitions/JSFCOneOf"
       - $ref: "#/definitions/JSFCReference"
       - $ref: "#/definitions/JSFCEmpty"
   JSFCEmpty:
     type: object
+  JSFCAnyOf:
+    type: object
+    required:
+      - anyOf
+    properties:
+      anyOf:
+        type: array
+        items:
+          $ref: "#/definitions/JSFCAnything"
+  JSFCOneOf:
+    type: object
+    required:
+      - oneOf
+    properties:
+      oneOf:
+        type: array
+        items:
+          $ref: "#/definitions/JSFCAnything"
   JSFCReference:
     type: object
     required:
@@ -269,11 +291,43 @@ definitions:
         type: object
         additionalProperties:
           $ref: "#/definitions/JSFCAnything"
+  JSFCTopLevelInteger:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCInteger"
+  JSFCTopLevelNumber:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCNumber"
+  JSFCTopLevelString:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCString"
+  JSFCTopLevelRegex:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCRegex"
   JSFCTopLevelObject:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCObject"
+  JSFCTopLevelOneOf:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCOneOf"
+  JSFCTopLevelAnyOf:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCAnyOf"
   JSFCTopLevelArray:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCArray"
+  JSFCTopLevelReference:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCReference"
+  JSFCTopLevelEmpty:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCEmpty"

@@ -200,3 +200,15 @@ test("object with pattern properties is correctly defined", () => {
   expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
 });
+
+test("anyOf at top level is correctly defined", () => {
+  const schema = {
+    anyOf: [{type: "string"}, {type: "number"}]
+  };
+  expect(jsonschema.validate(32, schema).valid).toBe(true);
+  expect(
+    jsonschema.validate("foobar", schema).valid
+  ).toBe(true);
+  expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});

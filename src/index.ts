@@ -11,7 +11,11 @@ import {
   JSFCTopLevelObject,
   JSFCAnything,
   JSFCEmpty,
-  JSFCRegex
+  JSFCRegex,
+  JSFCTopLevelOneOf,
+  JSFCTopLevelAnyOf,
+  JSFCAnyOf,
+  JSFCOneOf
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -241,6 +245,24 @@ const handleTopLevelObject = (
     [__MAIN__]: handleObject(a, options, tie)
   }))[__MAIN__];
 
+const listOfChoices = (a: JSFCAnyOf | JSFCOneOf) =>
+  JSFCAnyOf.is(a) ? a.anyOf : a.oneOf;
+
+const handleAnyOfOrOneOf = (
+  a: JSFCAnyOf | JSFCOneOf,
+  options: JSFCOptions,
+  tie: (s: string) => fc.Arbitrary<any>
+) => fc.oneof(...listOfChoices(a).map(i => processor(i, false, options, tie)));
+
+const handleTopLevelAnyOfOrOneOf = (
+  a: JSFCTopLevelAnyOf | JSFCTopLevelOneOf,
+  options: JSFCOptions
+): fc.Arbitrary<any> =>
+  fc.letrec(tie => ({
+    ...handleDefinitions(a.definitions || {}, options, tie),
+    [__MAIN__]: handleAnyOfOrOneOf(a, options, tie)
+  }))[__MAIN__];
+
 const processor = (
   jso: JSONSchemaObject,
   toplevel: boolean,
@@ -261,10 +283,18 @@ const processor = (
     ? handleTopLevelArray(jso, options)
     : toplevel && JSFCTopLevelObject.is(jso)
     ? handleTopLevelObject(jso, options)
+    : toplevel && JSFCTopLevelAnyOf.is(jso)
+    ? handleTopLevelAnyOfOrOneOf(jso, options)
+    : toplevel && JSFCTopLevelOneOf.is(jso)
+    ? handleTopLevelAnyOfOrOneOf(jso, options)
     : JSFCArray.is(jso)
     ? handleArray(jso, options, tie)
     : JSFCObject.is(jso)
     ? handleObject(jso, options, tie)
+    : JSFCAnyOf.is(jso)
+    ? handleAnyOfOrOneOf(jso, options, tie)
+    : JSFCOneOf.is(jso)
+    ? handleAnyOfOrOneOf(jso, options, tie)
     : JSFCEmpty.is(jso)
     ? fc.anything()
     : (() => {
