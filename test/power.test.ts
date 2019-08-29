@@ -19,9 +19,14 @@ test("power set works", () => {
 });
 
 test("power set always works", () => {
-  fc.assert(fc.property(fc.array(fc.integer()), (a) => {
-    const setA = new Set(a);
-    const s = power(a).map(i => new Set(i));
-    return (new Set(s).size === 2**a.length) && (s.filter(i => !iso(i, setA)).length === 0);
-  }))
+  fc.assert(
+    fc.property(fc.array(fc.integer()), a => {
+      const setA = new Set(a);
+      const s = power(a).map(i => new Set(i));
+      return (
+        new Set(s).size === 2 ** a.length &&
+        s.filter(i => !iso(i, setA)).length === 0
+      );
+    })
+  );
 });

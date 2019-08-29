@@ -29,6 +29,7 @@ import { Y } from "variadic-y";
 import { integer, MersenneTwister19937 } from "random-js";
 import power from "./power";
 import faker from "faker";
+import iso from "is-subset-of";
 import jsonschema from "jsonschema";
 
 const makeRandExp = (r: RegExp, seed: number) => {
@@ -108,7 +109,7 @@ const handleArray = (
   (a.uniqueItems ? fc.set : fc.array)(
     processor(a.items, false, options, definitions, tie),
     typeof a.minItems === "number" ? a.minItems : 0,
-    typeof a.maxItems === "number" ? a.maxItems : 0,
+    typeof a.maxItems === "number" ? a.maxItems : 0
   );
 
 const __MAIN__ = "__%@M4!N_$__";
@@ -125,22 +126,31 @@ const handleTopLevelArray = (
 
 const makePowerObject = <T>(
   properties: Record<string, T>,
-  required: string[]
+  required: string[],
+  dependencies: Record<string, Array<string>>
 ) =>
-  power(Object.keys(properties).filter(i => required.indexOf(i) === -1)).map(
-    p =>
+  power(Object.keys(properties).filter(i => required.indexOf(i) === -1))
+    .filter(
+      // filter to only use proper dependencies
+      l =>
+        l.filter(
+          v => !dependencies[v] || iso(dependencies[v], l.concat(required))
+        ).length === l.length
+    )
+    .map(p =>
       Object.keys(properties)
         .filter(i => required.indexOf(i) !== -1)
         .concat(p)
         .map(j => ({ [j]: properties[j] }))
         .reduce((a, b) => ({ ...a, ...b }), {})
-  );
+    );
 
 const handleObjectInternal = (
   properties: Record<string, JSFCAnything>,
   required: string[],
   additionalProperties: Record<string, fc.Arbitrary<any>>,
   patternProperties: Record<string, fc.Arbitrary<any>>,
+  dependencies: Record<string, Array<string>>,
   options: JSFCOptions,
   definitions: JSFCDefinitions,
   tie: (s: string) => fc.Arbitrary<any>
@@ -152,7 +162,8 @@ const handleObjectInternal = (
           [a]: processor(b, false, options, definitions, tie)
         }))
         .reduce((a, b) => ({ ...a, ...b }), {}),
-      required
+      required,
+      dependencies
     ).map(p =>
       fc.record({
         ...p,
@@ -202,6 +213,7 @@ const handleObject = (
           )
         }
       : {},
+    a.dependencies || {},
     options,
     definitions,
     tie

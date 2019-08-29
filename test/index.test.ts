@@ -112,7 +112,12 @@ test("array is correctly defined", () => {
 });
 
 test("array with min and max items correctly defined", () => {
-  const schema = { type: "array", items: { type: "string" }, minItems: 3, maxItems: 4 };
+  const schema = {
+    type: "array",
+    items: { type: "string" },
+    minItems: 3,
+    maxItems: 4
+  };
   expect(jsonschema.validate(["foo", "bar", "baz"], schema).valid).toBe(true);
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
@@ -232,16 +237,17 @@ test("object with dependencies is correctly defined", () => {
     properties: {
       a: { type: "integer" },
       b: { type: "integer" },
-      c: { type: "integer" },
+      c: { type: "integer" }
     },
     dependencies: {
       c: ["b"]
     }
-  }
-  expect(jsonschema.validate({a:1}, schema).valid).toBe(true);
-  expect(jsonschema.validate({a:1, c:2}, schema).valid).toBe(false);
-  expect(jsonschema.validate({a:1, b:2}, schema).valid).toBe(true);
-  expect(jsonschema.validate({a:1, b:2, c: 3}, schema).valid).toBe(true);
+  };
+  expect(jsonschema.validate({ a: 1 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ a: 1, c: 2 }, schema).valid).toBe(false);
+  expect(jsonschema.validate({ a: 1, b: 2 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ a: 1, b: 2, c: 3 }, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
 });
 
 test("anyOf at top level is correctly defined", () => {

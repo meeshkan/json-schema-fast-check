@@ -314,6 +314,12 @@ definitions:
         type: array
         items:
           type: string
+      dependencies:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: string
       additionalProperties:
         anyOf:
           - type: boolean
