@@ -34,6 +34,18 @@ test("integer is correctly defined with min/max", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("integer is correctly defined with exclusive min/max", () => {
+  const schema = {
+    type: "integer",
+    minimum: 0,
+    maximum: 3,
+    exclusiveMinimum: true,
+    exclusiveMaximum: true
+  };
+  expect(jsonschema.validate(1, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
 test("number is correctly defined", () => {
   const schema = { type: "number" };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);

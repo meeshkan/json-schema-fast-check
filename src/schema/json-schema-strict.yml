@@ -54,10 +54,6 @@ definitions:
         type: integer
       minimum:
         type: integer
-      exclusiveMinimum:
-        type: boolean
-      exclusiveMaximum:
-        type: boolean
   JSFCString:
     type: object
     required:

@@ -35,13 +35,14 @@ interface JSFCOptions {
   additionalPropertiesKey: string;
 }
 
+const z = <T>(t: T) => { console.log("FUCK", t); return t; }
 // TODO: implement multipleOf
 const handleInteger = (i: JSFCInteger) => {
   const minint = -2147483648;
   const maxint = 2147483647;
   return fc.integer(
-    i.minimum ? i.minimum : minint,
-    i.maximum ? i.maximum : maxint
+    (typeof i.minimum === "number" ? i.minimum : minint) + (i.exclusiveMinimum ? 1 : 0),
+    (typeof i.maximum === "number" ? i.maximum : maxint) - (i.exclusiveMaximum ? 1 : 0)
   );
 };
 
@@ -50,8 +51,8 @@ const handleNumber = (n: JSFCNumber) => {
   const minnumber = 0.0;
   const maxnumber = 1.0;
   return fc.double(
-    n.minimum ? n.minimum : minnumber,
-    n.maximum ? n.maximum : maxnumber
+    typeof n.minimum === "number" ? n.minimum : minnumber,
+    typeof n.maximum === "number" ? n.maximum : maxnumber
   );
 };
 
