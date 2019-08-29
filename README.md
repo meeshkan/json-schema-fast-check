@@ -6,7 +6,7 @@ Property testing is a useful way to make sure that a test passes with arbitrary 
 
 `json-schema-fast-check` implements arbitrary JSON Schema values using the `fast-check` library for property testing.
 
-The library is in `0.0.0-pre-pre-alpha`. Not on NPM yet. Assume nothing works. Check out the tests to see how it works. Enjoy!
+The library is in `0.0.0-pre-pre-alpha`. Not on NPM yet. Assume nothing works. Check out the tests to grok the general idea. Enjoy!
 
 ## A note on JSON Schema
 
