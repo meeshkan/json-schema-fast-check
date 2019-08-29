@@ -78,7 +78,9 @@ test("object is correctly defined", () => {
       bar: { type: "number" }
     }
   };
-  expect(jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a:1 } }, schema).valid).toBe(true);
+  expect(
+    jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a: 1 } }, schema).valid
+  ).toBe(true);
   validate(schema as JSONSchemaObject);
 });
 
@@ -92,10 +94,11 @@ test("object with no additional properties is correctly defined", () => {
     additionalProperties: false
   };
   expect(jsonschema.validate({ foo: "a", bar: 0.0 }, schema).valid).toBe(true);
-  expect(jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a:1 } }, schema).valid).toBe(false);
+  expect(
+    jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a: 1 } }, schema).valid
+  ).toBe(false);
   validate(schema as JSONSchemaObject);
 });
-
 
 test("$ref works", () => {
   const schema = {
