@@ -17,6 +17,7 @@ import RandExp from "randexp";
 import { Y } from "variadic-y";
 import { integer, MersenneTwister19937 } from "random-js";
 import power from "./power";
+import faker from "faker";
 
 const makeRandExp = (r: RegExp, seed: number) => {
   const ret = new RandExp(r);
@@ -54,7 +55,16 @@ const handleNumber = (n: JSFCNumber) => {
   );
 };
 
-const handleString = (s: JSFCString) => fc.string();
+const BIG = 42;
+const makeFakeStuff = (fkr: string) =>
+  fc.oneof(
+    ...[...Array(BIG).keys()].map(i =>
+      fc.constant(`${(faker as any)[fkr.split(".")[0]][fkr.split(".")[1]]()}`)
+    )
+  );
+
+const handleString = (s: JSFCString) =>
+  s.faker ? makeFakeStuff(s.faker) : fc.string();
 
 const handleReference = (
   r: JSFCReference,

@@ -64,6 +64,12 @@ test("string is correctly defined", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("faker string is correctly defined", () => {
+  const schema = { type: "string", faker: "address.zipCode" };
+  expect(jsonschema.validate("foo", schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
 test("array is correctly defined", () => {
   const schema = { type: "array", items: { type: "string" } };
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(true);

@@ -37,6 +37,11 @@ interface ObjectSchema {
   patternProperties?: { "^x-"?: {} };
 }
 
+interface StringEnumSchema {
+  type: "string";
+  enum: string[];
+}
+
 interface PatternedRecordSchema {
   type: "object";
   patternProperties: { [key: string]: JSONSchema };
@@ -63,8 +68,6 @@ interface ConstSchema {
   const: string;
 }
 
-interface EmptySchema {}
-
 type JSONSchema =
   | NullSchema
   | StringSchema
@@ -72,9 +75,9 @@ type JSONSchema =
   | IntegerSchema
   | NumberSchema
   | BooleanSchema
+  | StringEnumSchema
   | ArraySchema
   | ObjectSchema
-  | EmptySchema
   | RefSchema
   | AnyOfSchema
   | AllOfSchema;
@@ -110,6 +113,13 @@ const isNumber = (u: unknown): u is NumberSchema =>
 const isInteger = (u: unknown): u is IntegerSchema =>
   u && typeof u === "object" && (<IntegerSchema>u).type === "integer";
 
+const isStringEnum = (u: unknown): u is StringEnumSchema =>
+  u &&
+  typeof u === "object" &&
+  (<StringEnumSchema>u).type === "string" &&
+  (<StringEnumSchema>u).enum instanceof Array &&
+  (<StringEnumSchema>u).enum.filter(i => typeof i !== "string").length === 0;
+
 const isNull = (u: unknown): u is IntegerSchema =>
   u && typeof u === "object" && (<NullSchema>u).type === "null";
 
@@ -121,9 +131,6 @@ const isRecord = (u: unknown): u is RecordSchema =>
   typeof u === "object" &&
   (<ObjectSchema>u).properties === undefined &&
   typeof (<RecordSchema>u).additionalProperties === "object";
-
-const isEmpty = (u: unknown): u is EmptySchema =>
-  u && typeof u === "object" && Object.keys(<object>u).length === 0;
 
 const isPatternedRecord = (u: unknown): u is PatternedRecordSchema =>
   u &&
@@ -179,8 +186,8 @@ const to = (schema: JSONSchema): t.TypeReference =>
     ? t.nullType
     : isBoolean(schema)
     ? t.booleanType
-    : isEmpty(schema)
-    ? t.arrayCombinator(t.identifier("L04$3"))
+    : isStringEnum(schema)
+    ? t.unionCombinator(schema.enum.map(i => t.literalCombinator(i)))
     : t.stringType; // no need for string schema
 
 const generateTypes = ({
