@@ -226,6 +226,24 @@ test("object with pattern properties is correctly defined", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("object with dependencies is correctly defined", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      a: { type: "integer" },
+      b: { type: "integer" },
+      c: { type: "integer" },
+    },
+    dependencies: {
+      c: ["b"]
+    }
+  }
+  expect(jsonschema.validate({a:1}, schema).valid).toBe(true);
+  expect(jsonschema.validate({a:1, c:2}, schema).valid).toBe(false);
+  expect(jsonschema.validate({a:1, b:2}, schema).valid).toBe(true);
+  expect(jsonschema.validate({a:1, b:2, c: 3}, schema).valid).toBe(true);
+});
+
 test("anyOf at top level is correctly defined", () => {
   const schema = {
     anyOf: [{ type: "string" }, { type: "number" }]

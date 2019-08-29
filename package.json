@@ -13,6 +13,7 @@
     "codecov": "^3.5.0",
     "fp-ts": "^2.0.5",
     "io-ts-codegen": "^0.4.1",
+    "is-subset-of": "^2.0.0",
     "jest": "^24.9.0",
     "jest-junit": "^8.0.0",
     "js-yaml": "^3.13.1",

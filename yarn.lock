@@ -1682,6 +1682,13 @@ is-stream@^1.1.0:
   resolved "https://registry.yarnpkg.com/is-stream/-/is-stream-1.1.0.tgz#12d4a3dd4e68e0b79ceb8dbc84173ae80d91ca44"
   integrity sha1-EtSj3U5o4Lec6428hBc66A2RykQ=
 
+is-subset-of@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/is-subset-of/-/is-subset-of-2.0.0.tgz#87b9f4b0a8626deee44a3aae8ce5dd855164f18f"
+  integrity sha512-rvwJmY7Bxgcyd1n7PZIl+pwXd5O1tHsgy9KpTJZ404X1bl73ROUruYMa/yGXaL//2lNzS3ZnsnflEqlHnyytWQ==
+  dependencies:
+    typedescriptor "2.0.0"
+
 is-symbol@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-symbol/-/is-symbol-1.0.2.tgz#a055f6ae57192caee329e7a860118b497a950f38"
@@ -3549,6 +3556,11 @@ type-check@~0.3.2:
   integrity sha1-WITKtRLPHTVeP7eE8wgEsrUg23I=
   dependencies:
     prelude-ls "~1.1.2"
+
+typedescriptor@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/typedescriptor/-/typedescriptor-2.0.0.tgz#67646cfc45b0c39c1b69e21881e6fb94d0784561"
+  integrity sha512-okbg8tXcTZXhVxOMtrSkZRnTnJwxYKjbm80uYE10Onyhz8lSvl0ScpJ443bDgN7waERrobyN3W8D5Mfd75x1iA==
 
 typescript@^3.5.3:
   version "3.5.3"
