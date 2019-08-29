@@ -299,6 +299,10 @@ definitions:
         $ref: "#/definitions/JSFCAnything"
       uniqueItems:
         type: boolean
+      minItems:
+        type: integer
+      maxItems:
+        type: integer
   JSFCObject:
     type: object
     required:

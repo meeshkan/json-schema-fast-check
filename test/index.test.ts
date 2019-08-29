@@ -111,6 +111,13 @@ test("array is correctly defined", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("array with min and max items correctly defined", () => {
+  const schema = { type: "array", items: { type: "string" }, minItems: 3, maxItems: 4 };
+  expect(jsonschema.validate(["foo", "bar", "baz"], schema).valid).toBe(true);
+  expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
 test("array with unique items is correctly defined", () => {
   const schema = {
     type: "array",

@@ -106,7 +106,9 @@ const handleArray = (
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   (a.uniqueItems ? fc.set : fc.array)(
-    processor(a.items, false, options, definitions, tie)
+    processor(a.items, false, options, definitions, tie),
+    typeof a.minItems === "number" ? a.minItems : 0,
+    typeof a.maxItems === "number" ? a.maxItems : 0,
   );
 
 const __MAIN__ = "__%@M4!N_$__";
