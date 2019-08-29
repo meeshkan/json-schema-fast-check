@@ -1,4 +1,5 @@
-[![CircleCI](https://circleci.com/gh/unmock/json-schema-fast-check.svg?style=svg)](https://circleci.com/gh/unmock/json-schema-fast-check)[![codecov](https://codecov.io/gh/unmock/json-schema-fast-check/branch/dev/graph/badge.svg)](https://codecov.io/gh/unmock/json-schema-fast-check)
+[![CircleCI](https://circleci.com/gh/unmock/json-schema-fast-check.svg?style=svg)](https://circleci.com/gh/unmock/json-schema-fast-check)
+[![codecov](https://codecov.io/gh/unmock/json-schema-fast-check/branch/master/graph/badge.svg)](https://codecov.io/gh/unmock/json-schema-fast-check)
 
 # json-schema-fast-check
 
