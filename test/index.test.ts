@@ -4,7 +4,7 @@ import jsonschema from "jsonschema";
 import { JSONSchemaObject } from "../src/generated/json-schema-strict";
 
 const validate = (schema: JSONSchemaObject) => {
-  const { arbitrary, hoister } = jsfc(schema as JSONSchemaObject);
+  const { arbitrary, hoister } = jsfc(schema);
   fc.assert(
     fc.property(arbitrary, i => jsonschema.validate(hoister(i), schema).valid)
   );
@@ -78,9 +78,24 @@ test("object is correctly defined", () => {
       bar: { type: "number" }
     }
   };
-  expect(jsonschema.validate({foo: "a", bar: 0.0}, schema).valid).toBe(true);
+  expect(jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a:1 } }, schema).valid).toBe(true);
   validate(schema as JSONSchemaObject);
 });
+
+test("object with no additional properties is correctly defined", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      foo: { type: "string" },
+      bar: { type: "number" }
+    },
+    additionalProperties: false
+  };
+  expect(jsonschema.validate({ foo: "a", bar: 0.0 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a:1 } }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
 
 test("$ref works", () => {
   const schema = {
@@ -95,6 +110,40 @@ test("$ref works", () => {
       bar: { type: "number" }
     }
   };
-  expect(jsonschema.validate({foo: "a", bar: 0.0}, schema).valid).toBe(true);
+  expect(jsonschema.validate({ foo: "a", bar: 0.0 }, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
+test("object with additional properties is correctly defined", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      foo: { type: "string" }
+    },
+    additionalProperties: {
+      type: "number"
+    }
+  };
+  expect(jsonschema.validate({ foo: "a", baz: 0.0 }, schema).valid).toBe(true);
+  expect(jsonschema.validate({ foo: "a", baz: "z" }, schema).valid).toBe(false);
+  validate(schema as JSONSchemaObject);
+});
+
+test("object with pattern properties is correctly defined", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      foo: { type: "string" }
+    },
+    patternProperties: {
+      "^S_": { type: "string" },
+      "^I_": { type: "integer" }
+    }
+  };
+  expect(jsonschema.validate({ foo: "a", S_: "m" }, schema).valid).toBe(true);
+  expect(
+    jsonschema.validate({ foo: "a", S_z: "m", I_oo: 1 }, schema).valid
+  ).toBe(true);
+  expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
   validate(schema as JSONSchemaObject);
 });

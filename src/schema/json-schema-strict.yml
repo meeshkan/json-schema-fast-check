@@ -94,7 +94,9 @@ definitions:
         items:
           type: string
       additionalProperties:
-        $ref: "#/definitions/JSFCAnything"
+        anyOf:
+          - type: boolean
+          - $ref: "#/definitions/JSFCAnything"
       patternProperties:
         type: object
         additionalProperties:

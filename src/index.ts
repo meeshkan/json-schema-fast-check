@@ -21,11 +21,11 @@ const makeRandExp = (r: RegExp, seed: number) => {
   ret.randInt = (from: number, to: number) => {
     const mt = MersenneTwister19937.seed(seed);
     return integer(from, to)(mt);
-  }
+  };
   return ret;
-}
-// const char = () => fc.integer(0x20, 0x7e).map(String.fromCharCode);
-// const string = () => fc.array(fc.char()).map(arr => arr.join(''));
+};
+const rex = (s: string) =>
+  fc.integer().map(i => makeRandExp(new RegExp(s), i).gen());
 
 interface JSFCOptions {
   patternPropertiesKey: string;
@@ -56,21 +56,17 @@ const handleString = (s: JSFCString) => fc.string();
 
 const handleReference = (
   r: JSFCReference,
-  toplevel: boolean,
-  options: JSFCOptions,
   tie: (s: string) => fc.Arbitrary<any>
-): fc.Arbitrary<any> =>
-  tie(r.$ref.split("/")[2])
+): fc.Arbitrary<any> => tie(r.$ref.split("/")[2]);
 
 const handleDefinitions = (
   d: JSFCDefinitions,
   options: JSFCOptions,
   tie: (s: string) => fc.Arbitrary<any>
 ): Record<string, fc.Arbitrary<any>> =>
-  Object
-    .entries(d)
-    .map(([a, b]) => ({[a]: processor(b, false, options, tie)}))
-    .reduce((a, b) => ({...a, ...b}), {});
+  Object.entries(d)
+    .map(([a, b]) => ({ [a]: processor(b, false, options, tie) }))
+    .reduce((a, b) => ({ ...a, ...b }), {});
 
 const handleArray = (
   a: JSFCArray,
@@ -78,16 +74,17 @@ const handleArray = (
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> => fc.array(processor(a.items, false, options, tie));
 
-const __MAIN__ = "__%@M4!N_$__"
+const __MAIN__ = "__%@M4!N_$__";
 
 // TODO: use generics to combine toplevel functions
 const handleTopLevelArray = (
   a: JSFCTopLevelArray,
   options: JSFCOptions
-): fc.Arbitrary<any> => fc.letrec(tie => ({
-  ...handleDefinitions(a.definitions || {}, options, tie),
-  [__MAIN__]: handleArray(a, options, tie)
-}))[__MAIN__];
+): fc.Arbitrary<any> =>
+  fc.letrec(tie => ({
+    ...handleDefinitions(a.definitions || {}, options, tie),
+    [__MAIN__]: handleArray(a, options, tie)
+  }))[__MAIN__];
 
 const handleObject = (
   a: JSFCObject,
@@ -96,24 +93,59 @@ const handleObject = (
 ): fc.Arbitrary<any> =>
   fc.record(
     Object.entries(a.properties ? a.properties : {})
-      .map(([a, b]) => ({ [a]: processor(b, false, options, tie) }))
-      .concat(a.additionalProperties ? [{
-        [options.additionalPropertiesKey]:
-          fc.dictionary(
-            fc.string(),
-            processor(a.additionalProperties, false, options, tie)
-          )
-      }]: [])
-      .reduce((a, b) => ({ ...a, ...b }), {})
+      .map(([q, r]) => ({ [q]: processor(r, false, options, tie) }))
+      .concat(
+        typeof a.additionalProperties === "boolean"
+          ? a.additionalProperties
+            ? [
+                {
+                  [options.additionalPropertiesKey]: fc.dictionary(
+                    fc.string(),
+                    fc.anything()
+                  )
+                }
+              ]
+            : []
+          : a.additionalProperties
+          ? [
+              {
+                [options.additionalPropertiesKey]: fc.dictionary(
+                  fc.string(),
+                  processor(a.additionalProperties, false, options, tie)
+                )
+              }
+            ]
+          : []
+      )
+      .concat(
+        a.patternProperties
+          ? [
+              {
+                [options.patternPropertiesKey]: fc.record(
+                  Object.entries(a.patternProperties)
+                    .map(([q, r]) => ({
+                      [q]: fc.dictionary(
+                        rex(q),
+                        processor(r, false, options, tie)
+                      )
+                    }))
+                    .reduce((q, r) => ({ ...q, ...r }), {})
+                )
+              }
+            ]
+          : []
+      )
+      .reduce((q, r) => ({ ...q, ...r }), {})
   );
 
 const handleTopLevelObject = (
   a: JSFCTopLevelObject,
   options: JSFCOptions
-): fc.Arbitrary<any> => fc.letrec(tie => ({
-  ...handleDefinitions(a.definitions || {}, options, tie),
-  [__MAIN__]: handleObject(a, options, tie)
-}))[__MAIN__];
+): fc.Arbitrary<any> =>
+  fc.letrec(tie => ({
+    ...handleDefinitions(a.definitions || {}, options, tie),
+    [__MAIN__]: handleObject(a, options, tie)
+  }))[__MAIN__];
 
 const processor = (
   jso: JSONSchemaObject,
@@ -128,7 +160,7 @@ const processor = (
     : JSFCString.is(jso)
     ? handleString(jso)
     : JSFCReference.is(jso)
-    ? handleReference(jso, false, options, tie)
+    ? handleReference(jso, tie)
     : toplevel && JSFCTopLevelArray.is(jso)
     ? handleTopLevelArray(jso, options)
     : toplevel && JSFCTopLevelObject.is(jso)
@@ -138,7 +170,7 @@ const processor = (
     : JSFCObject.is(jso)
     ? handleObject(jso, options, tie)
     : (() => {
-        throw Error("wtf? "+JSON.stringify(jso));
+        throw Error("wtf? " + JSON.stringify(jso));
       })();
 
 const DEFAULT_OPTIONS = {
@@ -149,7 +181,7 @@ const DEFAULT_OPTIONS = {
 const hoistBase = (i: any, k: string) => ({
   ...Object.entries(i)
     .filter(([a]) => a !== k)
-    .reduce((a, [b, c]) => ({ ...a, ...{ [b]: c } }), {}),
+    .reduce((a, [b, c]) => ({ ...a, ...{ [b]: c } }), {})
 });
 
 const hoist1L = (i: any, k: string) => ({
@@ -160,11 +192,10 @@ const hoist1L = (i: any, k: string) => ({
 const hoist2L = (i: any, k: string) => ({
   ...hoistBase(i, k),
   ...(Object.keys(i).indexOf(k) !== -1
-      ? Object
-        .entries(i)
+    ? Object.entries(i[k])
         .map(([_, b]) => b)
         .reduce((a, b) => ({ ...a, ...b }), {})
-      : {})
+    : {})
 });
 
 const makeHoist = ({
