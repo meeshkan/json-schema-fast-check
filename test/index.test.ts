@@ -1,5 +1,5 @@
 import jsfc from "../src";
-import fc, { string } from "fast-check";
+import fc from "fast-check";
 import jsonschema from "jsonschema";
 import { JSONSchemaObject } from "../src/generated/json-schema-strict";
 
