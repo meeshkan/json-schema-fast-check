@@ -10,7 +10,8 @@ import {
   JSFCDefinitions,
   JSFCTopLevelObject,
   JSFCAnything,
-  JSFCEmpty
+  JSFCEmpty,
+  JSFCRegex
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -68,6 +69,9 @@ const makeFakeStuff = (fkr: string) =>
 
 const handleString = (s: JSFCString) =>
   s.faker ? makeFakeStuff(s.faker) : fc.string();
+
+const handleRegex = (s: JSFCRegex) =>
+  rex(s.pattern);
 
 const handleReference = (
   r: JSFCReference,
@@ -248,6 +252,8 @@ const processor = (
     ? handleInteger(jso)
     : JSFCNumber.is(jso)
     ? handleNumber(jso)
+    : JSFCRegex.is(jso)
+    ? handleRegex(jso)
     : JSFCString.is(jso)
     ? handleString(jso)
     : JSFCReference.is(jso)

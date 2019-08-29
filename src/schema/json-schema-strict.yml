@@ -3,6 +3,7 @@ anyOf:
   - $ref: "#/definitions/JSFCInteger"
   - $ref: "#/definitions/JSFCNumber"
   - $ref: "#/definitions/JSFCString"
+  - $ref: "#/definitions/JSFCRegex"
   - $ref: "#/definitions/JSFCTopLevelArray"
   - $ref: "#/definitions/JSFCTopLevelObject"
   - $ref: "#/definitions/JSFCReference"
@@ -13,6 +14,7 @@ definitions:
       - $ref: "#/definitions/JSFCInteger"
       - $ref: "#/definitions/JSFCNumber"
       - $ref: "#/definitions/JSFCString"
+      - $ref: "#/definitions/JSFCRegex"
       - $ref: "#/definitions/JSFCArray"
       - $ref: "#/definitions/JSFCObject"
       - $ref: "#/definitions/JSFCReference"
@@ -58,6 +60,16 @@ definitions:
         type: integer
       minimum:
         type: integer
+  JSFCRegex:
+    type: object
+    required:
+      - type
+      - pattern
+    properties:
+      type:
+        const: string
+      pattern:
+        type: string
   JSFCString:
     type: object
     required:
