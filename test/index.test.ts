@@ -1,7 +1,7 @@
 import jsfc, { generate } from "../src";
 import fc from "fast-check";
 import jsonschema from "jsonschema";
-import { JSONSchemaObject } from "../src/generated/json-schema-strict";
+import { JSONSchemaObject, JSFCStringEnum } from "../src/generated/json-schema-strict";
 
 const validate = (schema: JSONSchemaObject) => {
   // test jsfc
@@ -15,49 +15,71 @@ const validate = (schema: JSONSchemaObject) => {
 test("empty schema is correctly defined", () => {
   const schema = {};
   expect(jsonschema.validate({ foo: [1, "bar"] }, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("null schema is correctly defined", () => {
   const schema = { type: "null" };
   expect(jsonschema.validate(null, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("null schema is correctly defined", () => {
   const schema = { type: "null" };
   expect(jsonschema.validate(null, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("const schema is correctly defined", () => {
   const schema = { const: { hello: "world" } };
   expect(jsonschema.validate({ hello: "world" }, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
+});
+
+
+test("integer enum schema is correctly defined", () => {
+  const schema = { type: "integer", enum: [1,2,3]};
+  expect(jsonschema.validate(1, schema).valid).toBe(true);
+  expect(jsonschema.validate(4, schema).valid).toBe(false);
+  validate(schema);
+});
+
+test("number enum schema is correctly defined", () => {
+  const schema = { type: "number", enum: [1.0,2.1,3.3]};
+  expect(jsonschema.validate(2.1, schema).valid).toBe(true);
+  expect(jsonschema.validate(4.75, schema).valid).toBe(false);
+  validate(schema);
+});
+
+test("string enum schema is correctly defined", () => {
+  const schema = { type: "string", enum: ['a','b']};
+  expect(jsonschema.validate('a', schema).valid).toBe(true);
+  expect(jsonschema.validate('q', schema).valid).toBe(false);
+  validate(schema);
 });
 
 test("integer is correctly defined", () => {
   const schema = { type: "integer" };
   expect(jsonschema.validate(42, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("integer is correctly defined with minimum", () => {
   const schema = { type: "integer", minimum: -42 };
   expect(jsonschema.validate(0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("integer is correctly defined with maximum", () => {
   const schema = { type: "integer", maximum: 43 };
   expect(jsonschema.validate(0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("integer is correctly defined with min/max", () => {
   const schema = { type: "integer", minimum: -1, maximum: 43 };
   expect(jsonschema.validate(0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("integer is correctly defined with exclusive min/max", () => {
@@ -69,43 +91,43 @@ test("integer is correctly defined with exclusive min/max", () => {
     exclusiveMaximum: true
   };
   expect(jsonschema.validate(1, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("number is correctly defined", () => {
   const schema = { type: "number" };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("number is correctly defined with minimum", () => {
   const schema = { type: "number", minimum: -42 };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("number is correctly defined with maximum", () => {
   const schema = { type: "number", maximum: 43 };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("number is correctly defined with min/max", () => {
   const schema = { type: "number", minimum: -1, maximum: 43 };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("boolean is correctly defined", () => {
   const schema = { type: "boolean" };
   expect(jsonschema.validate(true, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("string is correctly defined", () => {
   const schema = { type: "string" };
   expect(jsonschema.validate("foo", schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("string with pattern is correctly defined", () => {
@@ -115,20 +137,20 @@ test("string with pattern is correctly defined", () => {
   };
   expect(jsonschema.validate("555-1212", schema).valid).toBe(true);
   expect(jsonschema.validate("foo", schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("faker string is correctly defined", () => {
   const schema = { type: "string", faker: "address.zipCode" };
   expect(jsonschema.validate("foo", schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("array is correctly defined", () => {
   const schema = { type: "array", items: { type: "string" } };
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(true);
   expect(jsonschema.validate(["foo", "foo"], schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("array with min and max items correctly defined", () => {
@@ -140,7 +162,7 @@ test("array with min and max items correctly defined", () => {
   };
   expect(jsonschema.validate(["foo", "bar", "baz"], schema).valid).toBe(true);
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("array with unique items is correctly defined", () => {
@@ -151,7 +173,7 @@ test("array with unique items is correctly defined", () => {
   };
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(true);
   expect(jsonschema.validate(["foo", "foo"], schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("tuple is correctly defined", () => {
@@ -162,7 +184,7 @@ test("tuple is correctly defined", () => {
   expect(jsonschema.validate(["foo", 1, true], schema).valid).toBe(true);
   expect(jsonschema.validate(["bar", 3, false], schema).valid).toBe(true);
   expect(jsonschema.validate([3, 3, false], schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("object is correctly defined", () => {
@@ -176,7 +198,7 @@ test("object is correctly defined", () => {
   expect(
     jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a: 1 } }, schema).valid
   ).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("object with no additional properties is correctly defined", () => {
@@ -192,7 +214,7 @@ test("object with no additional properties is correctly defined", () => {
   expect(
     jsonschema.validate({ foo: "a", bar: 0.0, fewfwef: { a: 1 } }, schema).valid
   ).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("object with required properties and no additional properties is correctly defined", () => {
@@ -208,7 +230,7 @@ test("object with required properties and no additional properties is correctly 
   };
   expect(jsonschema.validate({ foo: "a", bar: 0.0 }, schema).valid).toBe(true);
   expect(jsonschema.validate({ bar: 0.0 }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("$ref works", () => {
@@ -225,7 +247,7 @@ test("$ref works", () => {
     }
   };
   expect(jsonschema.validate({ foo: "a", bar: 0.0 }, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("object with additional properties is correctly defined", () => {
@@ -240,7 +262,7 @@ test("object with additional properties is correctly defined", () => {
   };
   expect(jsonschema.validate({ foo: "a", baz: 0.0 }, schema).valid).toBe(true);
   expect(jsonschema.validate({ foo: "a", baz: "z" }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("object with pattern properties is correctly defined", () => {
@@ -259,7 +281,7 @@ test("object with pattern properties is correctly defined", () => {
     jsonschema.validate({ foo: "a", S_z: "m", I_oo: 1 }, schema).valid
   ).toBe(true);
   expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("object with dependencies is correctly defined", () => {
@@ -278,7 +300,7 @@ test("object with dependencies is correctly defined", () => {
   expect(jsonschema.validate({ a: 1, c: 2 }, schema).valid).toBe(false);
   expect(jsonschema.validate({ a: 1, b: 2 }, schema).valid).toBe(true);
   expect(jsonschema.validate({ a: 1, b: 2, c: 3 }, schema).valid).toBe(true);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("anyOf at top level is correctly defined", () => {
@@ -288,7 +310,7 @@ test("anyOf at top level is correctly defined", () => {
   expect(jsonschema.validate(32, schema).valid).toBe(true);
   expect(jsonschema.validate("foobar", schema).valid).toBe(true);
   expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("anyOf internal level is correctly defined", () => {
@@ -307,7 +329,7 @@ test("anyOf internal level is correctly defined", () => {
   expect(jsonschema.validate({ z: 1 }, schema).valid).toBe(true);
   expect(jsonschema.validate({ z: 2 }, schema).valid).toBe(true);
   expect(jsonschema.validate({ z: { z: 1 } }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("oneOf at top level is correctly defined", () => {
@@ -317,7 +339,7 @@ test("oneOf at top level is correctly defined", () => {
   expect(jsonschema.validate(32, schema).valid).toBe(true);
   expect(jsonschema.validate("foobar", schema).valid).toBe(true);
   expect(jsonschema.validate({ foo: "a", S_o: 1 }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("not at top level is correctly defined", () => {
@@ -326,7 +348,7 @@ test("not at top level is correctly defined", () => {
   };
   expect(jsonschema.validate(32, schema).valid).toBe(true);
   expect(jsonschema.validate("foobar", schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("not at top level with definitions is correctly defined", () => {
@@ -338,14 +360,14 @@ test("not at top level with definitions is correctly defined", () => {
   };
   expect(jsonschema.validate(32, schema).valid).toBe(true);
   expect(jsonschema.validate("foobar", schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("not is correctly defined", () => {
   const schema = { type: "array", items: { not: { type: "string" } } };
   expect(jsonschema.validate([32, true], schema).valid).toBe(true);
   expect(jsonschema.validate([32, "foobar"], schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("not with definitions is correctly defined", () => {
@@ -358,7 +380,7 @@ test("not with definitions is correctly defined", () => {
   };
   expect(jsonschema.validate([32], schema).valid).toBe(true);
   expect(jsonschema.validate(["foobar"], schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("allOf at top level is correctly defined", () => {
@@ -376,7 +398,7 @@ test("allOf at top level is correctly defined", () => {
     true
   );
   expect(jsonschema.validate({ z: "hello" }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("allOf at top level with definitions is correctly defined", () => {
@@ -399,7 +421,7 @@ test("allOf at top level with definitions is correctly defined", () => {
     true
   );
   expect(jsonschema.validate({ z: "hello" }, schema).valid).toBe(false);
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });
 
 test("works with a schema from the json-schema.org website", () => {
@@ -438,5 +460,5 @@ test("works with a schema from the json-schema.org website", () => {
       }
     }
   };
-  validate(schema as JSONSchemaObject);
+  validate(schema);
 });

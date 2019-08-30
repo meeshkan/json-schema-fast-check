@@ -26,7 +26,10 @@ import {
   JSFCNull,
   JSFCConst,
   JSFCTopLevelNull,
-  JSFCTopLevelConst
+  JSFCTopLevelConst,
+  JSFCIntegerEnum,
+  JSFCNumberEnum,
+  JSFCStringEnum
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -64,6 +67,15 @@ const handleInteger = (i: JSFCInteger) =>
     (typeof i.maximum === "number" ? i.maximum : 2147483647) -
       (i.exclusiveMaximum ? 1 : 0)
   );
+
+const handleIntegerEnum = (i: JSFCIntegerEnum) =>
+  fc.oneof(...i.enum.map(a => fc.constant(a)));
+
+const handleStringEnum = (i: JSFCStringEnum) =>
+  fc.oneof(...i.enum.map(a => fc.constant(a)));
+
+const handleNumberEnum = (i: JSFCNumberEnum) =>
+  fc.oneof(...i.enum.map(a => fc.constant(a)));
 
 // TODO: implement multipleOf
 const handleNumber = (n: JSFCNumber) =>
@@ -315,7 +327,13 @@ const processor = (
   definitions: JSFCDefinitions,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
-  JSFCInteger.is(jso)
+  JSFCIntegerEnum.is(jso)
+    ? handleIntegerEnum(jso)
+    : JSFCNumberEnum.is(jso)
+    ? handleNumberEnum(jso)
+    : JSFCStringEnum.is(jso)
+    ? handleStringEnum(jso)
+    : JSFCInteger.is(jso)
     ? handleInteger(jso)
     : JSFCNumber.is(jso)
     ? handleNumber(jso)

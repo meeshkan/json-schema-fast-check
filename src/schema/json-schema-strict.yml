@@ -6,6 +6,9 @@ anyOf:
   - $ref: "#/definitions/JSFCTopLevelNumber"
   - $ref: "#/definitions/JSFCTopLevelBoolean"
   - $ref: "#/definitions/JSFCTopLevelString"
+  - $ref: "#/definitions/JSFCTopLevelStringEnum"
+  - $ref: "#/definitions/JSFCTopLevelIntegerEnum"
+  - $ref: "#/definitions/JSFCTopLevelNumberEnum"
   - $ref: "#/definitions/JSFCTopLevelRegex"
   - $ref: "#/definitions/JSFCTopLevelArray"
   - $ref: "#/definitions/JSFCTopLevelTuple"
@@ -25,6 +28,9 @@ definitions:
       - $ref: "#/definitions/JSFCBoolean"
       - $ref: "#/definitions/JSFCString"
       - $ref: "#/definitions/JSFCRegex"
+      - $ref: "#/definitions/JSFCStringEnum"
+      - $ref: "#/definitions/JSFCIntegerEnum"
+      - $ref: "#/definitions/JSFCNumberEnum"
       - $ref: "#/definitions/JSFCArray"
       - $ref: "#/definitions/JSFCTuple"
       - $ref: "#/definitions/JSFCObject"
@@ -147,6 +153,42 @@ definitions:
         const: string
       pattern:
         type: string
+  JSFCStringEnum:
+    type: object
+    required:
+      - type
+      - enum
+    properties:
+      type:
+        const: string
+      enum:
+        type: array
+        items:
+          type: string
+  JSFCIntegerEnum:
+    type: object
+    required:
+      - type
+      - enum
+    properties:
+      type:
+        const: integer
+      enum:
+        type: array
+        items:
+          type: integer
+  JSFCNumberEnum:
+    type: object
+    required:
+      - type
+      - enum
+    properties:
+      type:
+        const: number
+      enum:
+        type: array
+        items:
+          type: number
   JSFCString:
     type: object
     required:
@@ -386,6 +428,18 @@ definitions:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCNumber"
+  JSFCTopLevelStringEnum:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCStringEnum"
+  JSFCTopLevelIntegerEnum:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCIntegerEnum"
+  JSFCTopLevelNumberEnum:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCNumberEnum"
   JSFCTopLevelBoolean:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
