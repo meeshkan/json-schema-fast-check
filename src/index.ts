@@ -22,7 +22,11 @@ import {
   JSFCAllOf,
   JSFCBoolean,
   JSFCTuple,
-  JSFCTopLevelTuple
+  JSFCTopLevelTuple,
+  JSFCNull,
+  JSFCConst,
+  JSFCTopLevelNull,
+  JSFCTopLevelConst
 } from "./generated/json-schema-strict";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -53,28 +57,26 @@ interface JSFCOptions {
 }
 
 // TODO: implement multipleOf
-const handleInteger = (i: JSFCInteger) => {
-  const minint = -2147483648;
-  const maxint = 2147483647;
-  return fc.integer(
-    (typeof i.minimum === "number" ? i.minimum : minint) +
+const handleInteger = (i: JSFCInteger) =>
+  fc.integer(
+    (typeof i.minimum === "number" ? i.minimum : -2147483648) +
       (i.exclusiveMinimum ? 1 : 0),
-    (typeof i.maximum === "number" ? i.maximum : maxint) -
+    (typeof i.maximum === "number" ? i.maximum : 2147483647) -
       (i.exclusiveMaximum ? 1 : 0)
   );
-};
 
 // TODO: implement multipleOf
-const handleNumber = (n: JSFCNumber) => {
-  const minnumber = 0.0;
-  const maxnumber = 1.0;
-  return fc.double(
-    typeof n.minimum === "number" ? n.minimum : minnumber,
-    typeof n.maximum === "number" ? n.maximum : maxnumber
+const handleNumber = (n: JSFCNumber) =>
+  fc.double(
+    typeof n.minimum === "number" ? n.minimum : 0.0,
+    typeof n.maximum === "number" ? n.maximum : 1.0
   );
-};
 
 const handleBoolean = () => fc.boolean();
+
+const handleNull = () => fc.constant(null);
+
+const handleConst = (c: JSFCConst) => fc.constant(c.const);
 
 const BIG = 42;
 const makeFakeStuff = (fkr: string) =>
@@ -323,6 +325,10 @@ const processor = (
     ? handleRegex(jso)
     : JSFCString.is(jso)
     ? handleString(jso)
+    : JSFCNull.is(jso)
+    ? handleNull()
+    : JSFCConst.is(jso)
+    ? handleConst(jso)
     : JSFCReference.is(jso)
     ? handleReference(jso, tie)
     : toplevel && JSFCTopLevelArray.is(jso)

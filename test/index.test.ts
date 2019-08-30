@@ -18,6 +18,24 @@ test("empty schema is correctly defined", () => {
   validate(schema as JSONSchemaObject);
 });
 
+test("null schema is correctly defined", () => {
+  const schema = { type: "null" };
+  expect(jsonschema.validate(null, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
+test("null schema is correctly defined", () => {
+  const schema = { type: "null" };
+  expect(jsonschema.validate(null, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
+test("const schema is correctly defined", () => {
+  const schema = { const: { hello: "world" } };
+  expect(jsonschema.validate({ hello: "world" }, schema).valid).toBe(true);
+  validate(schema as JSONSchemaObject);
+});
+
 test("integer is correctly defined", () => {
   const schema = { type: "integer" };
   expect(jsonschema.validate(42, schema).valid).toBe(true);

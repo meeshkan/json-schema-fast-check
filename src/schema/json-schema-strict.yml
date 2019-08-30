@@ -1,5 +1,7 @@
 type: object
 anyOf:
+  - $ref: "#/definitions/JSFCTopLevelNull"
+  - $ref: "#/definitions/JSFCTopLevelConst"
   - $ref: "#/definitions/JSFCTopLevelInteger"
   - $ref: "#/definitions/JSFCTopLevelNumber"
   - $ref: "#/definitions/JSFCTopLevelBoolean"
@@ -17,7 +19,8 @@ anyOf:
 definitions:
   JSFCAnything:
     anyOf:
-      - $ref: "#/definitions/JSFCInteger"
+      - $ref: "#/definitions/JSFCNull"
+      - $ref: "#/definitions/JSFCConst"
       - $ref: "#/definitions/JSFCNumber"
       - $ref: "#/definitions/JSFCBoolean"
       - $ref: "#/definitions/JSFCString"
@@ -33,6 +36,27 @@ definitions:
       - $ref: "#/definitions/JSFCEmpty"
   JSFCEmpty:
     type: object
+  JSFCNull:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        const: 'null'
+  JSFCConst:
+    type: object
+    required:
+      - const
+    properties:
+      const:
+        anyOf:
+          - type: integer
+          - type: number
+          - type: string
+          - type: boolean
+          - type: 'null'
+          - type: array
+          - type: object
   JSFCAnyOf:
     type: object
     required:
@@ -350,6 +374,14 @@ definitions:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
       - $ref: "#/definitions/JSFCInteger"
+  JSFCTopLevelNull:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCNull"
+  JSFCTopLevelConst:
+    allOf:
+      - $ref: "#/definitions/JSFCDefinitions"
+      - $ref: "#/definitions/JSFCConst"
   JSFCTopLevelNumber:
     allOf:
       - $ref: "#/definitions/JSFCDefinitions"
