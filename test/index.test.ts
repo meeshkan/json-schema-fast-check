@@ -1,7 +1,10 @@
 import jsfc, { generate } from "../src";
 import fc from "fast-check";
 import jsonschema from "jsonschema";
-import { JSONSchemaObject, JSFCStringEnum } from "../src/generated/json-schema-strict";
+import {
+  JSONSchemaObject,
+  JSFCStringEnum
+} from "../src/generated/json-schema-strict";
 
 const validate = (schema: JSONSchemaObject) => {
   // test jsfc
@@ -36,25 +39,24 @@ test("const schema is correctly defined", () => {
   validate(schema);
 });
 
-
 test("integer enum schema is correctly defined", () => {
-  const schema = { type: "integer", enum: [1,2,3]};
+  const schema = { type: "integer", enum: [1, 2, 3] };
   expect(jsonschema.validate(1, schema).valid).toBe(true);
   expect(jsonschema.validate(4, schema).valid).toBe(false);
   validate(schema);
 });
 
 test("number enum schema is correctly defined", () => {
-  const schema = { type: "number", enum: [1.0,2.1,3.3]};
+  const schema = { type: "number", enum: [1.0, 2.1, 3.3] };
   expect(jsonschema.validate(2.1, schema).valid).toBe(true);
   expect(jsonschema.validate(4.75, schema).valid).toBe(false);
   validate(schema);
 });
 
 test("string enum schema is correctly defined", () => {
-  const schema = { type: "string", enum: ['a','b']};
-  expect(jsonschema.validate('a', schema).valid).toBe(true);
-  expect(jsonschema.validate('q', schema).valid).toBe(false);
+  const schema = { type: "string", enum: ["a", "b"] };
+  expect(jsonschema.validate("a", schema).valid).toBe(true);
+  expect(jsonschema.validate("q", schema).valid).toBe(false);
   validate(schema);
 });
 
