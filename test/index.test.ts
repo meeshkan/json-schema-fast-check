@@ -1,10 +1,7 @@
 import jsfc, { generate } from "../src";
 import fc from "fast-check";
 import jsonschema from "jsonschema";
-import {
-  JSONSchemaObject,
-  JSFCStringEnum
-} from "../src/generated/json-schema-strict";
+import { JSONSchemaObject } from "json-schema-strictly-typed";
 
 const validate = (schema: JSONSchemaObject) => {
   // test jsfc

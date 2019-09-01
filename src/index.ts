@@ -1,36 +1,45 @@
 import {
   JSONSchemaObject,
-  JSFCInteger,
-  JSFCNumber,
-  JSFCString,
-  JSFCArray,
-  JSFCObject,
-  JSFCReference,
-  JSFCTopLevelArray,
-  JSFCDefinitions,
-  JSFCTopLevelObject,
-  JSFCAnything,
-  JSFCEmpty,
-  JSFCRegex,
-  JSFCTopLevelOneOf,
-  JSFCTopLevelAnyOf,
-  JSFCAnyOf,
-  JSFCOneOf,
-  JSFCTopLevelNot,
-  JSFCNot,
-  JSFCTopLevelAllOf,
-  JSFCAllOf,
-  JSFCBoolean,
-  JSFCTuple,
-  JSFCTopLevelTuple,
-  JSFCNull,
-  JSFCConst,
-  JSFCTopLevelNull,
-  JSFCTopLevelConst,
-  JSFCIntegerEnum,
-  JSFCNumberEnum,
-  JSFCStringEnum
-} from "./generated/json-schema-strict";
+  JSSTInteger,
+  JSSTNumber,
+  JSSTSimpleString,
+  JSSTArray,
+  JSSTObject,
+  JSSTReference,
+  JSSTArrayTopLevel,
+  JSSTTopLevel,
+  JSSTObjectTopLevel,
+  JSSTAnything,
+  JSSTEmpty,
+  JSSTRegex,
+  JSSTOneOfTopLevel,
+  JSSTAnyOfTopLevel,
+  JSSTAnyOf,
+  JSSTOneOf,
+  JSSTNotTopLevel,
+  JSSTNot,
+  JSSTAllOfTopLevel,
+  JSSTAllOf,
+  JSSTBoolean,
+  JSSTTuple,
+  JSSTTupleTopLevel,
+  JSSTNull,
+  JSSTConst,
+  JSSTIntegerEnum,
+  JSSTNumberEnum,
+  JSSTStringEnum,
+  JSSTList,
+  JSSTIntegerWithMinimum,
+  JSSTIntegerWithNumericExclusiveMaximumAndMinimum,
+  JSSTIntegerWithNumericExclusiveMinimumAndMaximum,
+  JSSTIntegerWithMaximum,
+  JSSTIntegerWithBounds,
+  JSSTIntegerWithNumericExclusiveMinimum,
+  JSSTIntegerWithNumericExclusiveBounds,
+  JSSTIntegerWithNumericExclusiveMaximum,
+  JSSTSimpleNumber,
+  JSSTSimpleInteger
+} from "json-schema-strictly-typed";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
 import RandExp from "randexp";
@@ -53,42 +62,70 @@ const makeRandExp = (r: RegExp, seed: number) => {
 const rex = (s: string) =>
   fc.integer().map(i => makeRandExp(new RegExp(s), i).gen());
 
-interface JSFCOptions {
+interface JSSTOptions {
   patternPropertiesKey: string;
   additionalPropertiesKey: string;
   allOfKey: string;
 }
 
-// TODO: implement multipleOf
-const handleInteger = (i: JSFCInteger) =>
-  fc.integer(
-    (typeof i.minimum === "number" ? i.minimum : -2147483648) +
-      (i.exclusiveMinimum ? 1 : 0),
-    (typeof i.maximum === "number" ? i.maximum : 2147483647) -
-      (i.exclusiveMaximum ? 1 : 0)
-  );
+const handleInteger = (i: JSSTSimpleInteger) =>
+  fc
+    .integer(
+      (JSSTIntegerWithMinimum.is(i) ||
+      JSSTIntegerWithBounds.is(i) ||
+      JSSTIntegerWithNumericExclusiveMaximumAndMinimum.is(i)
+        ? i.minimum
+        : JSSTIntegerWithNumericExclusiveMinimum.is(i) ||
+          JSSTIntegerWithNumericExclusiveBounds.is(i)
+        ? i.exclusiveMinimum + 1
+        : -2147483648) +
+        ((JSSTIntegerWithMinimum.is(i) ||
+          JSSTIntegerWithNumericExclusiveMaximumAndMinimum.is(i)) &&
+        i.exclusiveMinimum
+          ? 1
+          : 0),
+      (JSSTIntegerWithMaximum.is(i) ||
+      JSSTIntegerWithBounds.is(i) ||
+      JSSTIntegerWithNumericExclusiveMinimumAndMaximum.is(i)
+        ? i.maximum
+        : JSSTIntegerWithNumericExclusiveMaximum.is(i) ||
+          JSSTIntegerWithNumericExclusiveBounds.is(i)
+        ? i.exclusiveMaximum - 1
+        : 2147483647) -
+        ((JSSTIntegerWithMaximum.is(i) ||
+          JSSTIntegerWithNumericExclusiveMinimumAndMaximum.is(i)) &&
+        i.exclusiveMaximum
+          ? 1
+          : 0)
+    )
+    .filter(x =>
+      i.multipleOf ? Math.floor(x / i.multipleOf) === x / i.multipleOf : true
+    );
 
-const handleIntegerEnum = (i: JSFCIntegerEnum) =>
+const handleIntegerEnum = (i: JSSTIntegerEnum) =>
   fc.oneof(...i.enum.map(a => fc.constant(a)));
 
-const handleStringEnum = (i: JSFCStringEnum) =>
+const handleStringEnum = (i: JSSTStringEnum) =>
   fc.oneof(...i.enum.map(a => fc.constant(a)));
 
-const handleNumberEnum = (i: JSFCNumberEnum) =>
+const handleNumberEnum = (i: JSSTNumberEnum) =>
   fc.oneof(...i.enum.map(a => fc.constant(a)));
 
-// TODO: implement multipleOf
-const handleNumber = (n: JSFCNumber) =>
-  fc.double(
-    typeof n.minimum === "number" ? n.minimum : 0.0,
-    typeof n.maximum === "number" ? n.maximum : 1.0
-  );
+const handleNumber = (n: JSSTSimpleNumber) =>
+  fc
+    .double(
+      typeof n.minimum === "number" ? n.minimum : 0.0,
+      typeof n.maximum === "number" ? n.maximum : 1.0
+    )
+    .filter(x =>
+      n.multipleOf ? Math.floor(x / n.multipleOf) === x / n.multipleOf : true
+    );
 
 const handleBoolean = () => fc.boolean();
 
 const handleNull = () => fc.constant(null);
 
-const handleConst = (c: JSFCConst) => fc.constant(c.const);
+const handleConst = (c: JSSTConst) => fc.constant(c.const);
 
 const BIG = 42;
 const makeFakeStuff = (fkr: string) =>
@@ -98,29 +135,29 @@ const makeFakeStuff = (fkr: string) =>
     )
   );
 
-const handleString = (s: JSFCString) =>
+const handleString = (s: JSSTSimpleString) =>
   s.faker ? makeFakeStuff(s.faker) : fc.string();
 
-const handleRegex = (s: JSFCRegex) => rex(s.pattern);
+const handleRegex = (s: JSSTRegex) => rex(s.pattern);
 
 const handleReference = (
-  r: JSFCReference,
+  r: JSSTReference,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> => tie(r.$ref.split("/")[2]);
 
 const handleDefinitions = (
-  d: JSFCDefinitions,
-  options: JSFCOptions,
+  d: JSSTTopLevel,
+  options: JSSTOptions,
   tie: (s: string) => fc.Arbitrary<any>
 ): Record<string, fc.Arbitrary<any>> =>
   Object.entries(d)
     .map(([a, b]) => ({ [a]: processor(b, false, options, d, tie) }))
     .reduce((a, b) => ({ ...a, ...b }), {});
 
-const handleArray = (
-  a: JSFCArray,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+const handleList = (
+  a: JSSTList,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   (a.uniqueItems ? fc.set : fc.array)(
@@ -133,18 +170,18 @@ const __MAIN__ = "__%@M4!N_$__";
 
 // TODO: use generics to combine toplevel functions
 const handleTopLevelArray = (
-  a: JSFCTopLevelArray,
-  options: JSFCOptions
+  a: JSSTArrayTopLevel,
+  options: JSSTOptions
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
     ...handleDefinitions(a.definitions || {}, options, tie),
-    [__MAIN__]: handleArray(a, options, a.definitions || {}, tie)
+    [__MAIN__]: handleList(a, options, a.definitions || {}, tie)
   }))[__MAIN__];
 
 const handleTuple = (
-  a: JSFCTuple,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+  a: JSSTTuple,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   handleTupleInternal(
@@ -153,8 +190,8 @@ const handleTuple = (
 
 // TODO: use generics to combine toplevel functions
 const handleTopLevelTuple = (
-  a: JSFCTopLevelTuple,
-  options: JSFCOptions
+  a: JSSTTupleTopLevel,
+  options: JSSTOptions
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
     ...handleDefinitions(a.definitions || {}, options, tie),
@@ -183,13 +220,13 @@ const makePowerObject = <T>(
     );
 
 const handleObjectInternal = (
-  properties: Record<string, JSFCAnything>,
+  properties: Record<string, JSSTAnything>,
   required: string[],
   additionalProperties: Record<string, fc.Arbitrary<any>>,
   patternProperties: Record<string, fc.Arbitrary<any>>,
   dependencies: Record<string, Array<string>>,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
   fc.oneof(
@@ -211,9 +248,9 @@ const handleObjectInternal = (
   );
 
 const handleObject = (
-  a: JSFCObject,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+  a: JSSTObject,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   handleObjectInternal(
@@ -257,21 +294,21 @@ const handleObject = (
   );
 
 const handleTopLevelObject = (
-  a: JSFCTopLevelObject,
-  options: JSFCOptions
+  a: JSSTObjectTopLevel,
+  options: JSSTOptions
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
     ...handleDefinitions(a.definitions || {}, options, tie),
     [__MAIN__]: handleObject(a, options, a.definitions || {}, tie)
   }))[__MAIN__];
 
-const listOfChoices = (a: JSFCAnyOf | JSFCOneOf) =>
-  JSFCAnyOf.is(a) ? a.anyOf : a.oneOf;
+const listOfChoices = (a: JSSTAnyOf | JSSTOneOf) =>
+  JSSTAnyOf.is(a) ? a.anyOf : a.oneOf;
 
 const handleAnyOfOrOneOf = (
-  a: JSFCAnyOf | JSFCOneOf,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+  a: JSSTAnyOf | JSSTOneOf,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
   fc.oneof(
@@ -279,8 +316,8 @@ const handleAnyOfOrOneOf = (
   );
 
 const handleTopLevelAnyOfOrOneOf = (
-  a: JSFCTopLevelAnyOf | JSFCTopLevelOneOf,
-  options: JSFCOptions
+  a: JSSTAnyOfTopLevel | JSSTOneOfTopLevel,
+  options: JSSTOptions
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
     ...handleDefinitions(a.definitions || {}, options, tie),
@@ -288,9 +325,9 @@ const handleTopLevelAnyOfOrOneOf = (
   }))[__MAIN__];
 
 const handleAllOf = (
-  a: JSFCAllOf,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+  a: JSSTAllOf,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
   fc.record({
@@ -304,80 +341,80 @@ const handleAllOf = (
   });
 
 const handleTopLevelAllOf = (
-  a: JSFCTopLevelAllOf,
-  options: JSFCOptions
+  a: JSSTAllOfTopLevel,
+  options: JSSTOptions
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
     ...handleDefinitions(a.definitions || {}, options, tie),
     [__MAIN__]: handleAllOf(a, options, a.definitions || {}, tie)
   }))[__MAIN__];
 
-const handleNot = (a: JSFCNot, definitions: JSFCDefinitions) =>
+const handleNot = (a: JSSTNot, definitions: JSSTTopLevel) =>
   fc
     .anything()
     .filter(i => !jsonschema.validate(i, { ...a.not, definitions }).valid);
 
-const handleTopLevelNot = (a: JSFCTopLevelNot): fc.Arbitrary<any> =>
+const handleTopLevelNot = (a: JSSTNotTopLevel): fc.Arbitrary<any> =>
   handleNot(a, a.definitions || {});
 
 const processor = (
   jso: JSONSchemaObject,
   toplevel: boolean,
-  options: JSFCOptions,
-  definitions: JSFCDefinitions,
+  options: JSSTOptions,
+  definitions: JSSTTopLevel,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
-  JSFCIntegerEnum.is(jso)
+  JSSTIntegerEnum.is(jso)
     ? handleIntegerEnum(jso)
-    : JSFCNumberEnum.is(jso)
+    : JSSTNumberEnum.is(jso)
     ? handleNumberEnum(jso)
-    : JSFCStringEnum.is(jso)
+    : JSSTStringEnum.is(jso)
     ? handleStringEnum(jso)
-    : JSFCInteger.is(jso)
+    : JSSTSimpleInteger.is(jso)
     ? handleInteger(jso)
-    : JSFCNumber.is(jso)
+    : JSSTSimpleNumber.is(jso)
     ? handleNumber(jso)
-    : JSFCBoolean.is(jso)
+    : JSSTBoolean.is(jso)
     ? handleBoolean()
-    : JSFCRegex.is(jso)
+    : JSSTRegex.is(jso)
     ? handleRegex(jso)
-    : JSFCString.is(jso)
+    : JSSTSimpleString.is(jso)
     ? handleString(jso)
-    : JSFCNull.is(jso)
+    : JSSTNull.is(jso)
     ? handleNull()
-    : JSFCConst.is(jso)
+    : JSSTConst.is(jso)
     ? handleConst(jso)
-    : JSFCReference.is(jso)
+    : JSSTReference.is(jso)
     ? handleReference(jso, tie)
-    : toplevel && JSFCTopLevelArray.is(jso)
+    : toplevel && JSSTArrayTopLevel.is(jso)
     ? handleTopLevelArray(jso, options)
-    : toplevel && JSFCTopLevelTuple.is(jso)
+    : toplevel && JSSTTupleTopLevel.is(jso)
     ? handleTopLevelTuple(jso, options)
-    : toplevel && JSFCTopLevelObject.is(jso)
+    : toplevel && JSSTObjectTopLevel.is(jso)
     ? handleTopLevelObject(jso, options)
-    : toplevel && JSFCTopLevelAnyOf.is(jso)
+    : toplevel && JSSTAnyOfTopLevel.is(jso)
     ? handleTopLevelAnyOfOrOneOf(jso, options)
-    : toplevel && JSFCTopLevelOneOf.is(jso)
+    : toplevel && JSSTOneOfTopLevel.is(jso)
     ? handleTopLevelAnyOfOrOneOf(jso, options)
-    : toplevel && JSFCTopLevelAllOf.is(jso)
+    : toplevel && JSSTAllOfTopLevel.is(jso)
     ? handleTopLevelAllOf(jso, options)
-    : toplevel && JSFCTopLevelNot.is(jso)
+    : toplevel && JSSTNotTopLevel.is(jso)
     ? handleTopLevelNot(jso)
-    : JSFCArray.is(jso)
-    ? handleArray(jso, options, definitions, tie)
-    : JSFCTuple.is(jso)
+    : JSSTArray.is(jso)
+    ? handleList(jso, options, definitions, tie)
+    : JSSTTuple.is(jso)
     ? handleTuple(jso, options, definitions, tie)
-    : JSFCObject.is(jso)
+    : JSSTObject.is(jso)
     ? handleObject(jso, options, definitions, tie)
-    : JSFCAnyOf.is(jso)
+    : JSSTAnyOf.is(jso)
     ? handleAnyOfOrOneOf(jso, options, definitions, tie)
-    : JSFCOneOf.is(jso)
+    : JSSTOneOf.is(jso)
     ? handleAnyOfOrOneOf(jso, options, definitions, tie)
-    : JSFCNot.is(jso)
+    : JSSTNot.is(jso)
     ? handleNot(jso, definitions)
-    : JSFCAllOf.is(jso)
+    : JSSTAllOf.is(jso)
     ? handleAllOf(jso, options, definitions, tie)
-    : JSFCEmpty.is(jso)
+    : JSSTEmpty.is(jso)
     ? fc.anything()
     : (() => {
         throw Error("wtf? " + JSON.stringify(jso));
@@ -413,7 +450,7 @@ const makeHoist = ({
   additionalPropertiesKey,
   patternPropertiesKey,
   allOfKey
-}: JSFCOptions) =>
+}: JSSTOptions) =>
   Y((ret: (z: any) => any) => (i: any): any =>
     i === null
       ? i
@@ -427,17 +464,17 @@ const makeHoist = ({
       : i
   );
 
-const internalDefault = (jso: JSONSchemaObject, options: JSFCOptions) =>
+const internalDefault = (jso: JSONSchemaObject, options: JSSTOptions) =>
   processor(jso, true, options, {}, (s: string) => fc.integer()).map(i =>
     makeHoist(options)(i)
   );
 
-const makeArbitrary = (jso: JSONSchemaObject, options?: Partial<JSFCOptions>) =>
+const makeArbitrary = (jso: JSONSchemaObject, options?: Partial<JSSTOptions>) =>
   internalDefault(jso, { ...DEFAULT_OPTIONS, ...(options ? options : {}) });
 
 export const generate = (
   jso: JSONSchemaObject,
-  options?: Partial<JSFCOptions>
+  options?: Partial<JSSTOptions>
 ) => fc.sample(makeArbitrary(jso, options))[0];
 
 export default makeArbitrary;

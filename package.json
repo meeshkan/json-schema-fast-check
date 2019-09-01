@@ -1,6 +1,6 @@
 {
   "name": "json-schema-fast-check",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "devDependencies": {
     "@types/faker": "^4.1.5",
@@ -23,11 +23,10 @@
     "typescript": "^3.5.3"
   },
   "scripts": {
-    "compile": "ts-node ./src/generator/generate-types.ts && tsc",
     "lint:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest",
-    "prepublish": "yarn compile && yarn lint && yarn test",
+    "prepublish": "yarn lint && yarn test",
     "test:ci": "yarn run coverage --ci --maxWorkers=2  --reporters=default --reporters=jest-junit",
     "coverage": "yarn test --coverage",
     "coverage:upload": "codecov"
@@ -35,8 +34,8 @@
   "dependencies": {
     "faker": "^4.1.0",
     "fast-check": "^1.16.2",
-    "io-ts": "^2.0.1",
     "is-subset-of": "^2.0.0",
+    "json-schema-strictly-typed": "^0.0.4",
     "jsonschema": "^1.2.4",
     "randexp": "^0.5.3",
     "random-js": "^2.1.0",

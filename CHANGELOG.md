@@ -1,5 +1,9 @@
 # Change Log
 
+## v0.0.3
+
+* Better checks for integer bounds.
+
 ## v0.0.2
 
 * Adds `enum`.
