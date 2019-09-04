@@ -1,6 +1,6 @@
 {
   "name": "json-schema-fast-check",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
@@ -36,7 +36,7 @@
     "faker": "^4.1.0",
     "fast-check": "^1.16.2",
     "is-subset-of": "^2.0.0",
-    "json-schema-strictly-typed": "^0.0.4",
+    "json-schema-strictly-typed": "^0.0.11",
     "jsonschema": "^1.2.4",
     "randexp": "^0.5.3",
     "random-js": "^2.1.0",

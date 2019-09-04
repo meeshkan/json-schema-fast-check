@@ -1,5 +1,10 @@
 # Change Log
 
+## v0.0.4
+
+* Uses new `json-schema-strictly-typed` for typed extensions.
+* Makes default typed extension `fc.Arbitrary<any>`.
+
 ## v0.0.3
 
 * Better checks for integer bounds.

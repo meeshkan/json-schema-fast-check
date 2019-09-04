@@ -1,9 +1,15 @@
-import jsfc, { generate } from "../src";
+import jsfc, {
+  generate,
+  FastCheckSchema,
+  makeArbitrary,
+  generateT
+} from "../src";
+import * as t from "io-ts";
 import fc from "fast-check";
-import jsonschema from "jsonschema";
 import { JSONSchemaObject } from "json-schema-strictly-typed";
+import jsonschema from "jsonschema";
 
-const validate = (schema: JSONSchemaObject) => {
+const validate = (schema: FastCheckSchema) => {
   // test jsfc
   fc.assert(
     fc.property(jsfc(schema), i => jsonschema.validate(i, schema).valid)
@@ -13,76 +19,76 @@ const validate = (schema: JSONSchemaObject) => {
 };
 
 test("empty schema is correctly defined", () => {
-  const schema = {};
+  const schema: FastCheckSchema = {};
   expect(jsonschema.validate({ foo: [1, "bar"] }, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("null schema is correctly defined", () => {
-  const schema = { type: "null" };
+  const schema: FastCheckSchema = { type: "null" };
   expect(jsonschema.validate(null, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("null schema is correctly defined", () => {
-  const schema = { type: "null" };
+  const schema: FastCheckSchema = { type: "null" };
   expect(jsonschema.validate(null, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("const schema is correctly defined", () => {
-  const schema = { const: { hello: "world" } };
+  const schema: FastCheckSchema = { const: { hello: "world" } };
   expect(jsonschema.validate({ hello: "world" }, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("integer enum schema is correctly defined", () => {
-  const schema = { type: "integer", enum: [1, 2, 3] };
+  const schema: FastCheckSchema = { type: "integer", enum: [1, 2, 3] };
   expect(jsonschema.validate(1, schema).valid).toBe(true);
   expect(jsonschema.validate(4, schema).valid).toBe(false);
   validate(schema);
 });
 
 test("number enum schema is correctly defined", () => {
-  const schema = { type: "number", enum: [1.0, 2.1, 3.3] };
+  const schema: FastCheckSchema = { type: "number", enum: [1.0, 2.1, 3.3] };
   expect(jsonschema.validate(2.1, schema).valid).toBe(true);
   expect(jsonschema.validate(4.75, schema).valid).toBe(false);
   validate(schema);
 });
 
 test("string enum schema is correctly defined", () => {
-  const schema = { type: "string", enum: ["a", "b"] };
+  const schema: FastCheckSchema = { type: "string", enum: ["a", "b"] };
   expect(jsonschema.validate("a", schema).valid).toBe(true);
   expect(jsonschema.validate("q", schema).valid).toBe(false);
   validate(schema);
 });
 
 test("integer is correctly defined", () => {
-  const schema = { type: "integer" };
+  const schema: FastCheckSchema = { type: "integer" };
   expect(jsonschema.validate(42, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("integer is correctly defined with minimum", () => {
-  const schema = { type: "integer", minimum: -42 };
+  const schema: FastCheckSchema = { type: "integer", minimum: -42 };
   expect(jsonschema.validate(0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("integer is correctly defined with maximum", () => {
-  const schema = { type: "integer", maximum: 43 };
+  const schema: FastCheckSchema = { type: "integer", maximum: 43 };
   expect(jsonschema.validate(0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("integer is correctly defined with min/max", () => {
-  const schema = { type: "integer", minimum: -1, maximum: 43 };
+  const schema: FastCheckSchema = { type: "integer", minimum: -1, maximum: 43 };
   expect(jsonschema.validate(0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("integer is correctly defined with exclusive min/max", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "integer",
     minimum: 0,
     maximum: 3,
@@ -94,43 +100,43 @@ test("integer is correctly defined with exclusive min/max", () => {
 });
 
 test("number is correctly defined", () => {
-  const schema = { type: "number" };
+  const schema: FastCheckSchema = { type: "number" };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("number is correctly defined with minimum", () => {
-  const schema = { type: "number", minimum: -42 };
+  const schema: FastCheckSchema = { type: "number", minimum: -42 };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("number is correctly defined with maximum", () => {
-  const schema = { type: "number", maximum: 43 };
+  const schema: FastCheckSchema = { type: "number", maximum: 43 };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("number is correctly defined with min/max", () => {
-  const schema = { type: "number", minimum: -1, maximum: 43 };
+  const schema: FastCheckSchema = { type: "number", minimum: -1, maximum: 43 };
   expect(jsonschema.validate(0.0, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("boolean is correctly defined", () => {
-  const schema = { type: "boolean" };
+  const schema: FastCheckSchema = { type: "boolean" };
   expect(jsonschema.validate(true, schema).valid).toBe(true);
   validate(schema);
 });
 
 test("string is correctly defined", () => {
-  const schema = { type: "string" };
+  const schema: FastCheckSchema = { type: "string" };
   expect(jsonschema.validate("foo", schema).valid).toBe(true);
   validate(schema);
 });
 
 test("string with pattern is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "string",
     pattern: "^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$"
   };
@@ -140,20 +146,20 @@ test("string with pattern is correctly defined", () => {
 });
 
 test("faker string is correctly defined", () => {
-  const schema = { type: "string", faker: "address.zipCode" };
+  const schema: FastCheckSchema = { type: "string", faker: "address.zipCode" };
   expect(jsonschema.validate("foo", schema).valid).toBe(true);
   validate(schema);
 });
 
 test("array is correctly defined", () => {
-  const schema = { type: "array", items: { type: "string" } };
+  const schema: FastCheckSchema = { type: "array", items: { type: "string" } };
   expect(jsonschema.validate(["foo", "bar"], schema).valid).toBe(true);
   expect(jsonschema.validate(["foo", "foo"], schema).valid).toBe(true);
   validate(schema);
 });
 
 test("array with min and max items correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "array",
     items: { type: "string" },
     minItems: 3,
@@ -165,7 +171,7 @@ test("array with min and max items correctly defined", () => {
 });
 
 test("array with unique items is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "array",
     items: { type: "string" },
     uniqueItems: true
@@ -176,7 +182,7 @@ test("array with unique items is correctly defined", () => {
 });
 
 test("tuple is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "array",
     items: [{ type: "string" }, { type: "number" }, { type: "boolean" }]
   };
@@ -187,7 +193,7 @@ test("tuple is correctly defined", () => {
 });
 
 test("object is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "object",
     properties: {
       foo: { type: "string" },
@@ -200,8 +206,66 @@ test("object is correctly defined", () => {
   validate(schema);
 });
 
+test("object can contain fast-check", () => {
+  const schema: FastCheckSchema = {
+    type: "object",
+    properties: {
+      foo: fc.string(),
+      bar: { type: "number" }
+    }
+  };
+  const schema2 = {
+    type: "object",
+    properties: {
+      foo: { type: "string" },
+      bar: { type: "number" }
+    }
+  };
+  fc.assert(
+    fc.property(jsfc(schema), i => jsonschema.validate(i, schema2).valid)
+  );
+  expect(jsonschema.validate(generate(schema), schema2).valid).toBe(true);
+});
+
+const Color = t.union([
+  t.literal("green"),
+  t.literal("red"),
+  t.literal("blue")
+]);
+type Color = t.TypeOf<typeof Color>;
+
+test("generic version works", () => {
+  const schema: JSONSchemaObject<Color> = {
+    type: "object",
+    properties: {
+      foo: "blue",
+      bar: { type: "number" }
+    }
+  };
+  const schema2 = {
+    type: "object",
+    properties: {
+      foo: { type: "string", enum: ["red", "green", "blue"] },
+      bar: { type: "number" }
+    }
+  };
+  const check = {
+    c: Color,
+    f: (i: Color) => fc.constant(i)
+  };
+  fc.assert(
+    fc.property(
+      makeArbitrary(schema, check),
+      i => jsonschema.validate(i, schema2).valid
+    )
+  );
+  expect(jsonschema.validate(generateT(schema, check), schema2).valid).toBe(
+    true
+  );
+});
+
 test("object with no additional properties is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "object",
     properties: {
       foo: { type: "string" },
@@ -217,7 +281,7 @@ test("object with no additional properties is correctly defined", () => {
 });
 
 test("object with required properties and no additional properties is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "object",
     required: ["foo"],
     properties: {
@@ -233,7 +297,7 @@ test("object with required properties and no additional properties is correctly 
 });
 
 test("$ref works", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     definitions: {
       baz: {
         type: "string"
@@ -250,7 +314,7 @@ test("$ref works", () => {
 });
 
 test("object with additional properties is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "object",
     properties: {
       foo: { type: "string" }
@@ -265,7 +329,7 @@ test("object with additional properties is correctly defined", () => {
 });
 
 test("object with pattern properties is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "object",
     properties: {
       foo: { type: "string" }
@@ -284,7 +348,7 @@ test("object with pattern properties is correctly defined", () => {
 });
 
 test("object with dependencies is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     type: "object",
     properties: {
       a: { type: "integer" },
@@ -303,7 +367,7 @@ test("object with dependencies is correctly defined", () => {
 });
 
 test("anyOf at top level is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     anyOf: [{ type: "string" }, { type: "number" }]
   };
   expect(jsonschema.validate(32, schema).valid).toBe(true);
@@ -313,7 +377,7 @@ test("anyOf at top level is correctly defined", () => {
 });
 
 test("anyOf internal level is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     definitions: {
       foo: { type: "number" },
       bar: { type: "string" }
@@ -332,7 +396,7 @@ test("anyOf internal level is correctly defined", () => {
 });
 
 test("oneOf at top level is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     oneOf: [{ type: "string" }, { type: "number" }]
   };
   expect(jsonschema.validate(32, schema).valid).toBe(true);
@@ -342,7 +406,7 @@ test("oneOf at top level is correctly defined", () => {
 });
 
 test("not at top level is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     not: { type: "string" }
   };
   expect(jsonschema.validate(32, schema).valid).toBe(true);
@@ -351,7 +415,7 @@ test("not at top level is correctly defined", () => {
 });
 
 test("not at top level with definitions is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     definitions: {
       foo: { type: "string" }
     },
@@ -363,14 +427,17 @@ test("not at top level with definitions is correctly defined", () => {
 });
 
 test("not is correctly defined", () => {
-  const schema = { type: "array", items: { not: { type: "string" } } };
+  const schema: FastCheckSchema = {
+    type: "array",
+    items: { not: { type: "string" } }
+  };
   expect(jsonschema.validate([32, true], schema).valid).toBe(true);
   expect(jsonschema.validate([32, "foobar"], schema).valid).toBe(false);
   validate(schema);
 });
 
 test("not with definitions is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     definitions: {
       foo: { type: "string" }
     },
@@ -383,7 +450,7 @@ test("not with definitions is correctly defined", () => {
 });
 
 test("allOf at top level is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     allOf: [
       {
         type: "object",
@@ -401,7 +468,7 @@ test("allOf at top level is correctly defined", () => {
 });
 
 test("allOf at top level with definitions is correctly defined", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     definitions: {
       z: {
         type: "object",
@@ -424,11 +491,9 @@ test("allOf at top level with definitions is correctly defined", () => {
 });
 
 test("works with a schema from the json-schema.org website", () => {
-  const schema = {
+  const schema: FastCheckSchema = {
     $id: "https://example.com/arrays.schema.json",
     $schema: "http://json-schema.org/draft-07/schema#",
-    description:
-      "A representation of a person, company, organization, or place",
     type: "object",
     properties: {
       fruits: {
@@ -448,12 +513,10 @@ test("works with a schema from the json-schema.org website", () => {
         required: ["veggieName", "veggieLike"],
         properties: {
           veggieName: {
-            type: "string",
-            description: "The name of the vegetable."
+            type: "string"
           },
           veggieLike: {
-            type: "boolean",
-            description: "Do I like this vegetable?"
+            type: "boolean"
           }
         }
       }

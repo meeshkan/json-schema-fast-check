@@ -1,3 +1,4 @@
+import * as t from "io-ts";
 import {
   JSONSchemaObject,
   JSSTInteger,
@@ -38,7 +39,8 @@ import {
   JSSTIntegerWithNumericExclusiveBounds,
   JSSTIntegerWithNumericExclusiveMaximum,
   JSSTSimpleNumber,
-  JSSTSimpleInteger
+  JSSTSimpleInteger,
+  JSSTListTopLevel
 } from "json-schema-strictly-typed";
 import fc from "fast-check";
 import uuid4 from "uuid/v4";
@@ -50,6 +52,11 @@ import handleTupleInternal from "./handleTupleInternal";
 import faker from "faker";
 import iso from "is-subset-of";
 import jsonschema from "jsonschema";
+
+interface Check<T> {
+  c: t.Type<T, T>;
+  f: (t: T) => fc.Arbitrary<any>;
+}
 
 const makeRandExp = (r: RegExp, seed: number) => {
   const ret = new RandExp(r);
@@ -145,23 +152,25 @@ const handleReference = (
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> => tie(r.$ref.split("/")[2]);
 
-const handleDefinitions = (
-  d: JSSTTopLevel,
+const handleDefinitions = <T>(
+  d: JSSTTopLevel<T>,
   options: JSSTOptions,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): Record<string, fc.Arbitrary<any>> =>
   Object.entries(d)
-    .map(([a, b]) => ({ [a]: processor(b, false, options, d, tie) }))
+    .map(([a, b]) => ({ [a]: processor<T>(b, false, options, d, check, tie) }))
     .reduce((a, b) => ({ ...a, ...b }), {});
 
-const handleList = (
-  a: JSSTList,
+const handleList = <T>(
+  a: JSSTList<T>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   (a.uniqueItems ? fc.set : fc.array)(
-    processor(a.items, false, options, definitions, tie),
+    processor<T>(a.items, false, options, definitions, check, tie),
     typeof a.minItems === "number" ? a.minItems : 0,
     typeof a.maxItems === "number" ? a.maxItems : 0
   );
@@ -169,37 +178,40 @@ const handleList = (
 const __MAIN__ = "__%@M4!N_$__";
 
 // TODO: use generics to combine toplevel functions
-const handleTopLevelArray = (
-  a: JSSTArrayTopLevel,
-  options: JSSTOptions
+const handleTopLevelList = <T>(
+  a: JSSTListTopLevel<T>,
+  options: JSSTOptions,
+  check: Check<T>
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
-    ...handleDefinitions(a.definitions || {}, options, tie),
-    [__MAIN__]: handleList(a, options, a.definitions || {}, tie)
+    ...handleDefinitions<T>(a.definitions || {}, options, check, tie),
+    [__MAIN__]: handleList<T>(a, options, a.definitions || {}, check, tie)
   }))[__MAIN__];
 
-const handleTuple = (
-  a: JSSTTuple,
+const handleTuple = <T>(
+  a: JSSTTuple<T>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   handleTupleInternal(
-    a.items.map(i => processor(i, false, options, definitions, tie))
+    a.items.map(i => processor(i, false, options, definitions, check, tie))
   );
 
 // TODO: use generics to combine toplevel functions
-const handleTopLevelTuple = (
-  a: JSSTTupleTopLevel,
-  options: JSSTOptions
+const handleTopLevelTuple = <T>(
+  a: JSSTTupleTopLevel<T>,
+  options: JSSTOptions,
+  check: Check<T>
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
-    ...handleDefinitions(a.definitions || {}, options, tie),
-    [__MAIN__]: handleTuple(a, options, a.definitions || {}, tie)
+    ...handleDefinitions(a.definitions || {}, options, check, tie),
+    [__MAIN__]: handleTuple(a, options, a.definitions || {}, check, tie)
   }))[__MAIN__];
 
-const makePowerObject = <T>(
-  properties: Record<string, T>,
+const makePowerObject = <Q>(
+  properties: Record<string, Q>,
   required: string[],
   dependencies: Record<string, Array<string>>
 ) =>
@@ -219,21 +231,22 @@ const makePowerObject = <T>(
         .reduce((a, b) => ({ ...a, ...b }), {})
     );
 
-const handleObjectInternal = (
-  properties: Record<string, JSSTAnything>,
+const handleObjectInternal = <T>(
+  properties: Record<string, JSSTAnything<T>>,
   required: string[],
   additionalProperties: Record<string, fc.Arbitrary<any>>,
   patternProperties: Record<string, fc.Arbitrary<any>>,
   dependencies: Record<string, Array<string>>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
   fc.oneof(
     ...makePowerObject(
       Object.entries(properties)
         .map(([a, b]) => ({
-          [a]: processor(b, false, options, definitions, tie)
+          [a]: processor(b, false, options, definitions, check, tie)
         }))
         .reduce((a, b) => ({ ...a, ...b }), {}),
       required,
@@ -247,10 +260,11 @@ const handleObjectInternal = (
     )
   );
 
-const handleObject = (
-  a: JSSTObject,
+const handleObject = <T>(
+  a: JSSTObject<T>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   handleObjectInternal(
@@ -269,7 +283,14 @@ const handleObject = (
       ? {
           [options.additionalPropertiesKey]: fc.dictionary(
             fc.string(),
-            processor(a.additionalProperties, false, options, definitions, tie)
+            processor(
+              a.additionalProperties,
+              false,
+              options,
+              definitions,
+              check,
+              tie
+            )
           )
         }
       : {},
@@ -280,7 +301,7 @@ const handleObject = (
               .map(([q, r]) => ({
                 [q]: fc.dictionary(
                   rex(q),
-                  processor(r, false, options, definitions, tie)
+                  processor(r, false, options, definitions, check, tie)
                 )
               }))
               .reduce((q, r) => ({ ...q, ...r }), {})
@@ -290,78 +311,93 @@ const handleObject = (
     a.dependencies || {},
     options,
     definitions,
+    check,
     tie
   );
 
-const handleTopLevelObject = (
-  a: JSSTObjectTopLevel,
-  options: JSSTOptions
+const handleTopLevelObject = <T>(
+  a: JSSTObjectTopLevel<T>,
+  options: JSSTOptions,
+  check: Check<T>
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
-    ...handleDefinitions(a.definitions || {}, options, tie),
-    [__MAIN__]: handleObject(a, options, a.definitions || {}, tie)
+    ...handleDefinitions<T>(a.definitions || {}, options, check, tie),
+    [__MAIN__]: handleObject<T>(a, options, a.definitions || {}, check, tie)
   }))[__MAIN__];
 
-const listOfChoices = (a: JSSTAnyOf | JSSTOneOf) =>
-  JSSTAnyOf.is(a) ? a.anyOf : a.oneOf;
+const listOfChoices = <T>(check: Check<T>, a: JSSTAnyOf<T> | JSSTOneOf<T>) =>
+  JSSTAnyOf(check.c).is(a) ? a.anyOf : a.oneOf;
 
-const handleAnyOfOrOneOf = (
-  a: JSSTAnyOf | JSSTOneOf,
+const handleAnyOfOrOneOf = <T>(
+  a: JSSTAnyOf<T> | JSSTOneOf<T>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
   fc.oneof(
-    ...listOfChoices(a).map(i => processor(i, false, options, definitions, tie))
+    ...listOfChoices<T>(check, a).map(i =>
+      processor(i, false, options, definitions, check, tie)
+    )
   );
 
-const handleTopLevelAnyOfOrOneOf = (
-  a: JSSTAnyOfTopLevel | JSSTOneOfTopLevel,
-  options: JSSTOptions
+const handleTopLevelAnyOfOrOneOf = <T>(
+  a: JSSTAnyOfTopLevel<T> | JSSTOneOfTopLevel<T>,
+  options: JSSTOptions,
+  check: Check<T>
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
-    ...handleDefinitions(a.definitions || {}, options, tie),
-    [__MAIN__]: handleAnyOfOrOneOf(a, options, a.definitions || {}, tie)
+    ...handleDefinitions<T>(a.definitions || {}, options, check, tie),
+    [__MAIN__]: handleAnyOfOrOneOf<T>(
+      a,
+      options,
+      a.definitions || {},
+      check,
+      tie
+    )
   }))[__MAIN__];
 
-const handleAllOf = (
-  a: JSSTAllOf,
+const handleAllOf = <T>(
+  a: JSSTAllOf<T>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
   fc.record({
     [options.allOfKey]: fc.record(
       a.allOf
         .map(i => ({
-          [uuid4()]: processor(i, false, options, definitions, tie)
+          [uuid4()]: processor(i, false, options, definitions, check, tie)
         }))
         .reduce((a, b) => ({ ...a, ...b }), {})
     )
   });
 
-const handleTopLevelAllOf = (
-  a: JSSTAllOfTopLevel,
-  options: JSSTOptions
+const handleTopLevelAllOf = <T>(
+  a: JSSTAllOfTopLevel<T>,
+  options: JSSTOptions,
+  check: Check<T>
 ): fc.Arbitrary<any> =>
   fc.letrec(tie => ({
-    ...handleDefinitions(a.definitions || {}, options, tie),
-    [__MAIN__]: handleAllOf(a, options, a.definitions || {}, tie)
+    ...handleDefinitions(a.definitions || {}, options, check, tie),
+    [__MAIN__]: handleAllOf(a, options, a.definitions || {}, check, tie)
   }))[__MAIN__];
 
-const handleNot = (a: JSSTNot, definitions: JSSTTopLevel) =>
+const handleNot = <T>(a: JSSTNot<T>, definitions: JSSTTopLevel<T>) =>
   fc
     .anything()
     .filter(i => !jsonschema.validate(i, { ...a.not, definitions }).valid);
 
-const handleTopLevelNot = (a: JSSTNotTopLevel): fc.Arbitrary<any> =>
-  handleNot(a, a.definitions || {});
+const handleTopLevelNot = <T>(a: JSSTNotTopLevel<T>): fc.Arbitrary<any> =>
+  handleNot<T>(a, a.definitions || {});
 
-const processor = (
-  jso: JSONSchemaObject,
+const processor = <T>(
+  jso: JSONSchemaObject<T>,
   toplevel: boolean,
   options: JSSTOptions,
-  definitions: JSSTTopLevel,
+  definitions: JSSTTopLevel<T>,
+  check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
   JSSTIntegerEnum.is(jso)
@@ -386,38 +422,40 @@ const processor = (
     ? handleConst(jso)
     : JSSTReference.is(jso)
     ? handleReference(jso, tie)
-    : toplevel && JSSTArrayTopLevel.is(jso)
-    ? handleTopLevelArray(jso, options)
-    : toplevel && JSSTTupleTopLevel.is(jso)
-    ? handleTopLevelTuple(jso, options)
-    : toplevel && JSSTObjectTopLevel.is(jso)
-    ? handleTopLevelObject(jso, options)
-    : toplevel && JSSTAnyOfTopLevel.is(jso)
-    ? handleTopLevelAnyOfOrOneOf(jso, options)
-    : toplevel && JSSTOneOfTopLevel.is(jso)
-    ? handleTopLevelAnyOfOrOneOf(jso, options)
-    : toplevel && JSSTAllOfTopLevel.is(jso)
-    ? handleTopLevelAllOf(jso, options)
-    : toplevel && JSSTNotTopLevel.is(jso)
+    : toplevel && JSSTListTopLevel(check.c).is(jso)
+    ? handleTopLevelList(jso, options, check)
+    : toplevel && JSSTTupleTopLevel(check.c).is(jso)
+    ? handleTopLevelTuple(jso, options, check)
+    : toplevel && JSSTObjectTopLevel(check.c).is(jso)
+    ? handleTopLevelObject(jso, options, check)
+    : toplevel && JSSTAnyOfTopLevel(check.c).is(jso)
+    ? handleTopLevelAnyOfOrOneOf(jso, options, check)
+    : toplevel && JSSTOneOfTopLevel(check.c).is(jso)
+    ? handleTopLevelAnyOfOrOneOf(jso, options, check)
+    : toplevel && JSSTAllOfTopLevel(check.c).is(jso)
+    ? handleTopLevelAllOf(jso, options, check)
+    : toplevel && JSSTNotTopLevel(check.c).is(jso)
     ? handleTopLevelNot(jso)
-    : JSSTArray.is(jso)
-    ? handleList(jso, options, definitions, tie)
-    : JSSTTuple.is(jso)
-    ? handleTuple(jso, options, definitions, tie)
-    : JSSTObject.is(jso)
-    ? handleObject(jso, options, definitions, tie)
-    : JSSTAnyOf.is(jso)
-    ? handleAnyOfOrOneOf(jso, options, definitions, tie)
-    : JSSTOneOf.is(jso)
-    ? handleAnyOfOrOneOf(jso, options, definitions, tie)
-    : JSSTNot.is(jso)
+    : JSSTList(check.c).is(jso)
+    ? handleList(jso, options, definitions, check, tie)
+    : JSSTTuple(check.c).is(jso)
+    ? handleTuple(jso, options, definitions, check, tie)
+    : JSSTObject(check.c).is(jso)
+    ? handleObject(jso, options, definitions, check, tie)
+    : JSSTAnyOf(check.c).is(jso)
+    ? handleAnyOfOrOneOf(jso, options, definitions, check, tie)
+    : JSSTOneOf(check.c).is(jso)
+    ? handleAnyOfOrOneOf(jso, options, definitions, check, tie)
+    : JSSTNot(check.c).is(jso)
     ? handleNot(jso, definitions)
-    : JSSTAllOf.is(jso)
-    ? handleAllOf(jso, options, definitions, tie)
+    : JSSTAllOf(check.c).is(jso)
+    ? handleAllOf(jso, options, definitions, check, tie)
     : JSSTEmpty.is(jso)
     ? fc.anything()
+    : check.c.is(jso)
+    ? check.f(jso)
     : (() => {
-        throw Error("wtf? " + JSON.stringify(jso));
+        throw Error("Have no clue how to process this." + JSON.stringify(jso));
       })();
 
 const DEFAULT_OPTIONS = {
@@ -464,17 +502,49 @@ const makeHoist = ({
       : i
   );
 
-const internalDefault = (jso: JSONSchemaObject, options: JSSTOptions) =>
-  processor(jso, true, options, {}, (s: string) => fc.integer()).map(i =>
+const internalDefault = <T>(
+  jso: JSONSchemaObject<T>,
+  options: JSSTOptions,
+  check: Check<T>
+) =>
+  processor(jso, true, options, {}, check, (s: string) => fc.integer()).map(i =>
     makeHoist(options)(i)
   );
 
-const makeArbitrary = (jso: JSONSchemaObject, options?: Partial<JSSTOptions>) =>
-  internalDefault(jso, { ...DEFAULT_OPTIONS, ...(options ? options : {}) });
+export const makeArbitrary = <T>(
+  jso: JSONSchemaObject<T>,
+  check: Check<T>,
+  options?: Partial<JSSTOptions>
+) =>
+  internalDefault(
+    jso,
+    { ...DEFAULT_OPTIONS, ...(options ? options : {}) },
+    check
+  );
+const fcType = new t.Type<fc.Arbitrary<any>, fc.Arbitrary<any>>(
+  "fast-check",
+  (input: unknown): input is fc.Arbitrary<any> => input instanceof fc.Arbitrary,
+  (input, context) =>
+    input instanceof fc.Arbitrary
+      ? t.success(input)
+      : t.failure(input, context),
+  t.identity
+);
+
+export const generateT = <T>(
+  jso: JSONSchemaObject<T>,
+  check: Check<T>,
+  options?: Partial<JSSTOptions>
+) => fc.sample(makeArbitrary(jso, check, options))[0];
 
 export const generate = (
-  jso: JSONSchemaObject,
+  jso: JSONSchemaObject<fc.Arbitrary<any>>,
   options?: Partial<JSSTOptions>
-) => fc.sample(makeArbitrary(jso, options))[0];
+) => fc.sample(makeArbitrary(jso, { c: fcType, f: i => i }, options))[0];
 
-export default makeArbitrary;
+export type FastCheckSchema = JSONSchemaObject<fc.Arbitrary<any>>;
+
+export default (
+  jso: JSONSchemaObject<fc.Arbitrary<any>>,
+  options?: Partial<JSSTOptions>
+) => makeArbitrary(jso, { c: fcType, f: i => i }, options);
