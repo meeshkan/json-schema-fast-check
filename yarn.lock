@@ -2207,10 +2207,10 @@ json-parse-better-errors@^1.0.1:
   resolved "https://registry.yarnpkg.com/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz#bb867cfb3450e69107c131d1c514bab3dc8bcaa9"
   integrity sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
 
-json-schema-strictly-typed@^0.0.11:
-  version "0.0.11"
-  resolved "https://registry.yarnpkg.com/json-schema-strictly-typed/-/json-schema-strictly-typed-0.0.11.tgz#99418b73b4b70a0cece401818c43c4535fdacfb9"
-  integrity sha512-jOO0AS46PCfxypbxP+xDBMFN0SpmM9iF5y0LvWUYTfCeurHwpOOAhPHgs+d/7O6xt9JqiAqZe+HgWCqjOLv04Q==
+json-schema-strictly-typed@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/json-schema-strictly-typed/-/json-schema-strictly-typed-0.0.12.tgz#a92f4959a7a2ccafde3d0870658159d95b564abb"
+  integrity sha512-vBfe0RmA2dJwjvKBXGtspZSH8sWnNJHP1jR/Bi0Ojks5t4s4gtcc6yMx6SkJQZ9C6vJ7ddDYzMqrmkZuaDmLjg==
   dependencies:
     io-ts "^2.0.1"
 

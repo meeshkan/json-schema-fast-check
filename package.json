@@ -37,7 +37,7 @@
     "fast-check": "^1.16.2",
     "io-ts": "^2.0.1",
     "is-subset-of": "^2.0.0",
-    "json-schema-strictly-typed": "^0.0.11",
+    "json-schema-strictly-typed": "^0.0.12",
     "jsonschema": "^1.2.4",
     "randexp": "^0.5.3",
     "random-js": "^2.1.0",
