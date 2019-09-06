@@ -1,5 +1,9 @@
 # Change Log
 
+## `v0.0.5`
+
+* Uses generic extensions.
+
 ## v0.0.4
 
 * Uses new `json-schema-strictly-typed` for typed extensions.
