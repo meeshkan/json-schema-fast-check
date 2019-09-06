@@ -75,32 +75,32 @@ interface JSSTOptions {
   allOfKey: string;
 }
 
-const handleInteger = (i: JSSTSimpleInteger) =>
+const handleInteger = (i: JSSTSimpleInteger<{}>) =>
   fc
     .integer(
-      (JSSTIntegerWithMinimum.is(i) ||
-      JSSTIntegerWithBounds.is(i) ||
-      JSSTIntegerWithNumericExclusiveMaximumAndMinimum.is(i)
+      (JSSTIntegerWithMinimum(t.type({})).is(i) ||
+      JSSTIntegerWithBounds(t.type({})).is(i) ||
+      JSSTIntegerWithNumericExclusiveMaximumAndMinimum(t.type({})).is(i)
         ? i.minimum
-        : JSSTIntegerWithNumericExclusiveMinimum.is(i) ||
-          JSSTIntegerWithNumericExclusiveBounds.is(i)
+        : JSSTIntegerWithNumericExclusiveMinimum(t.type({})).is(i) ||
+          JSSTIntegerWithNumericExclusiveBounds(t.type({})).is(i)
         ? i.exclusiveMinimum + 1
         : -2147483648) +
-        ((JSSTIntegerWithMinimum.is(i) ||
-          JSSTIntegerWithNumericExclusiveMaximumAndMinimum.is(i)) &&
+        ((JSSTIntegerWithMinimum(t.type({})).is(i) ||
+          JSSTIntegerWithNumericExclusiveMaximumAndMinimum(t.type({})).is(i)) &&
         i.exclusiveMinimum
           ? 1
           : 0),
-      (JSSTIntegerWithMaximum.is(i) ||
-      JSSTIntegerWithBounds.is(i) ||
-      JSSTIntegerWithNumericExclusiveMinimumAndMaximum.is(i)
+      (JSSTIntegerWithMaximum(t.type({})).is(i) ||
+      JSSTIntegerWithBounds(t.type({})).is(i) ||
+      JSSTIntegerWithNumericExclusiveMinimumAndMaximum(t.type({})).is(i)
         ? i.maximum
-        : JSSTIntegerWithNumericExclusiveMaximum.is(i) ||
-          JSSTIntegerWithNumericExclusiveBounds.is(i)
+        : JSSTIntegerWithNumericExclusiveMaximum(t.type({})).is(i) ||
+          JSSTIntegerWithNumericExclusiveBounds(t.type({})).is(i)
         ? i.exclusiveMaximum - 1
         : 2147483647) -
-        ((JSSTIntegerWithMaximum.is(i) ||
-          JSSTIntegerWithNumericExclusiveMinimumAndMaximum.is(i)) &&
+        ((JSSTIntegerWithMaximum(t.type({})).is(i) ||
+          JSSTIntegerWithNumericExclusiveMinimumAndMaximum(t.type({})).is(i)) &&
         i.exclusiveMaximum
           ? 1
           : 0)
@@ -109,16 +109,16 @@ const handleInteger = (i: JSSTSimpleInteger) =>
       i.multipleOf ? Math.floor(x / i.multipleOf) === x / i.multipleOf : true
     );
 
-const handleIntegerEnum = (i: JSSTIntegerEnum) =>
+const handleIntegerEnum = (i: JSSTIntegerEnum<{}>) =>
   fc.oneof(...i.enum.map(a => fc.constant(a)));
 
-const handleStringEnum = (i: JSSTStringEnum) =>
+const handleStringEnum = (i: JSSTStringEnum<{}>) =>
   fc.oneof(...i.enum.map(a => fc.constant(a)));
 
-const handleNumberEnum = (i: JSSTNumberEnum) =>
+const handleNumberEnum = (i: JSSTNumberEnum<{}>) =>
   fc.oneof(...i.enum.map(a => fc.constant(a)));
 
-const handleNumber = (n: JSSTSimpleNumber) =>
+const handleNumber = (n: JSSTSimpleNumber<{}>) =>
   fc
     .double(
       typeof n.minimum === "number" ? n.minimum : 0.0,
@@ -132,7 +132,7 @@ const handleBoolean = () => fc.boolean();
 
 const handleNull = () => fc.constant(null);
 
-const handleConst = (c: JSSTConst) => fc.constant(c.const);
+const handleConst = (c: JSSTConst<{}>) => fc.constant(c.const);
 
 const BIG = 42;
 const makeFakeStuff = (fkr: string) =>
@@ -142,18 +142,18 @@ const makeFakeStuff = (fkr: string) =>
     )
   );
 
-const handleString = (s: JSSTSimpleString) =>
+const handleString = (s: JSSTSimpleString<{}>) =>
   s.faker ? makeFakeStuff(s.faker) : fc.string();
 
-const handleRegex = (s: JSSTRegex) => rex(s.pattern);
+const handleRegex = (s: JSSTRegex<{}>) => rex(s.pattern);
 
 const handleReference = (
-  r: JSSTReference,
+  r: JSSTReference<{}>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> => tie(r.$ref.split("/")[2]);
 
 const handleDefinitions = <T>(
-  d: JSSTTopLevel<T>,
+  d: JSSTTopLevel<T, {}>,
   options: JSSTOptions,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
@@ -163,9 +163,9 @@ const handleDefinitions = <T>(
     .reduce((a, b) => ({ ...a, ...b }), {});
 
 const handleList = <T>(
-  a: JSSTList<T>,
+  a: JSSTList<T, {}>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
@@ -179,7 +179,7 @@ const __MAIN__ = "__%@M4!N_$__";
 
 // TODO: use generics to combine toplevel functions
 const handleTopLevelList = <T>(
-  a: JSSTListTopLevel<T>,
+  a: JSSTListTopLevel<T, {}>,
   options: JSSTOptions,
   check: Check<T>
 ): fc.Arbitrary<any> =>
@@ -189,9 +189,9 @@ const handleTopLevelList = <T>(
   }))[__MAIN__];
 
 const handleTuple = <T>(
-  a: JSSTTuple<T>,
+  a: JSSTTuple<T, {}>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
@@ -201,7 +201,7 @@ const handleTuple = <T>(
 
 // TODO: use generics to combine toplevel functions
 const handleTopLevelTuple = <T>(
-  a: JSSTTupleTopLevel<T>,
+  a: JSSTTupleTopLevel<T, {}>,
   options: JSSTOptions,
   check: Check<T>
 ): fc.Arbitrary<any> =>
@@ -232,13 +232,13 @@ const makePowerObject = <Q>(
     );
 
 const handleObjectInternal = <T>(
-  properties: Record<string, JSSTAnything<T>>,
+  properties: Record<string, JSSTAnything<T, {}>>,
   required: string[],
   additionalProperties: Record<string, fc.Arbitrary<any>>,
   patternProperties: Record<string, fc.Arbitrary<any>>,
   dependencies: Record<string, Array<string>>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
@@ -261,9 +261,9 @@ const handleObjectInternal = <T>(
   );
 
 const handleObject = <T>(
-  a: JSSTObject<T>,
+  a: JSSTObject<T, {}>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
@@ -316,7 +316,7 @@ const handleObject = <T>(
   );
 
 const handleTopLevelObject = <T>(
-  a: JSSTObjectTopLevel<T>,
+  a: JSSTObjectTopLevel<T, {}>,
   options: JSSTOptions,
   check: Check<T>
 ): fc.Arbitrary<any> =>
@@ -325,13 +325,15 @@ const handleTopLevelObject = <T>(
     [__MAIN__]: handleObject<T>(a, options, a.definitions || {}, check, tie)
   }))[__MAIN__];
 
-const listOfChoices = <T>(check: Check<T>, a: JSSTAnyOf<T> | JSSTOneOf<T>) =>
-  JSSTAnyOf(check.c).is(a) ? a.anyOf : a.oneOf;
+const listOfChoices = <T>(
+  check: Check<T>,
+  a: JSSTAnyOf<T, {}> | JSSTOneOf<T, {}>
+) => (JSSTAnyOf(check.c, t.type({})).is(a) ? a.anyOf : a.oneOf);
 
 const handleAnyOfOrOneOf = <T>(
-  a: JSSTAnyOf<T> | JSSTOneOf<T>,
+  a: JSSTAnyOf<T, {}> | JSSTOneOf<T, {}>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
@@ -342,7 +344,7 @@ const handleAnyOfOrOneOf = <T>(
   );
 
 const handleTopLevelAnyOfOrOneOf = <T>(
-  a: JSSTAnyOfTopLevel<T> | JSSTOneOfTopLevel<T>,
+  a: JSSTAnyOfTopLevel<T, {}> | JSSTOneOfTopLevel<T, {}>,
   options: JSSTOptions,
   check: Check<T>
 ): fc.Arbitrary<any> =>
@@ -358,9 +360,9 @@ const handleTopLevelAnyOfOrOneOf = <T>(
   }))[__MAIN__];
 
 const handleAllOf = <T>(
-  a: JSSTAllOf<T>,
+  a: JSSTAllOf<T, {}>,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ) =>
@@ -375,7 +377,7 @@ const handleAllOf = <T>(
   });
 
 const handleTopLevelAllOf = <T>(
-  a: JSSTAllOfTopLevel<T>,
+  a: JSSTAllOfTopLevel<T, {}>,
   options: JSSTOptions,
   check: Check<T>
 ): fc.Arbitrary<any> =>
@@ -384,73 +386,73 @@ const handleTopLevelAllOf = <T>(
     [__MAIN__]: handleAllOf(a, options, a.definitions || {}, check, tie)
   }))[__MAIN__];
 
-const handleNot = <T>(a: JSSTNot<T>, definitions: JSSTTopLevel<T>) =>
+const handleNot = <T>(a: JSSTNot<T, {}>, definitions: JSSTTopLevel<T, {}>) =>
   fc
     .anything()
     .filter(i => !jsonschema.validate(i, { ...a.not, definitions }).valid);
 
-const handleTopLevelNot = <T>(a: JSSTNotTopLevel<T>): fc.Arbitrary<any> =>
+const handleTopLevelNot = <T>(a: JSSTNotTopLevel<T, {}>): fc.Arbitrary<any> =>
   handleNot<T>(a, a.definitions || {});
 
 const processor = <T>(
-  jso: JSONSchemaObject<T>,
+  jso: JSONSchemaObject<T, {}>,
   toplevel: boolean,
   options: JSSTOptions,
-  definitions: JSSTTopLevel<T>,
+  definitions: JSSTTopLevel<T, {}>,
   check: Check<T>,
   tie: (s: string) => fc.Arbitrary<any>
 ): fc.Arbitrary<any> =>
-  JSSTIntegerEnum.is(jso)
+  JSSTIntegerEnum(t.type({})).is(jso)
     ? handleIntegerEnum(jso)
-    : JSSTNumberEnum.is(jso)
+    : JSSTNumberEnum(t.type({})).is(jso)
     ? handleNumberEnum(jso)
-    : JSSTStringEnum.is(jso)
+    : JSSTStringEnum(t.type({})).is(jso)
     ? handleStringEnum(jso)
-    : JSSTSimpleInteger.is(jso)
+    : JSSTSimpleInteger(t.type({})).is(jso)
     ? handleInteger(jso)
-    : JSSTSimpleNumber.is(jso)
+    : JSSTSimpleNumber(t.type({})).is(jso)
     ? handleNumber(jso)
-    : JSSTBoolean.is(jso)
+    : JSSTBoolean(t.type({})).is(jso)
     ? handleBoolean()
-    : JSSTRegex.is(jso)
+    : JSSTRegex(t.type({})).is(jso)
     ? handleRegex(jso)
-    : JSSTSimpleString.is(jso)
+    : JSSTSimpleString(t.type({})).is(jso)
     ? handleString(jso)
-    : JSSTNull.is(jso)
+    : JSSTNull(t.type({})).is(jso)
     ? handleNull()
-    : JSSTConst.is(jso)
+    : JSSTConst(t.type({})).is(jso)
     ? handleConst(jso)
-    : JSSTReference.is(jso)
+    : JSSTReference(t.type({})).is(jso)
     ? handleReference(jso, tie)
-    : toplevel && JSSTListTopLevel(check.c).is(jso)
+    : toplevel && JSSTListTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelList(jso, options, check)
-    : toplevel && JSSTTupleTopLevel(check.c).is(jso)
+    : toplevel && JSSTTupleTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelTuple(jso, options, check)
-    : toplevel && JSSTObjectTopLevel(check.c).is(jso)
+    : toplevel && JSSTObjectTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelObject(jso, options, check)
-    : toplevel && JSSTAnyOfTopLevel(check.c).is(jso)
+    : toplevel && JSSTAnyOfTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelAnyOfOrOneOf(jso, options, check)
-    : toplevel && JSSTOneOfTopLevel(check.c).is(jso)
+    : toplevel && JSSTOneOfTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelAnyOfOrOneOf(jso, options, check)
-    : toplevel && JSSTAllOfTopLevel(check.c).is(jso)
+    : toplevel && JSSTAllOfTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelAllOf(jso, options, check)
-    : toplevel && JSSTNotTopLevel(check.c).is(jso)
+    : toplevel && JSSTNotTopLevel(check.c, t.type({})).is(jso)
     ? handleTopLevelNot(jso)
-    : JSSTList(check.c).is(jso)
+    : JSSTList(check.c, t.type({})).is(jso)
     ? handleList(jso, options, definitions, check, tie)
-    : JSSTTuple(check.c).is(jso)
+    : JSSTTuple(check.c, t.type({})).is(jso)
     ? handleTuple(jso, options, definitions, check, tie)
-    : JSSTObject(check.c).is(jso)
+    : JSSTObject(check.c, t.type({})).is(jso)
     ? handleObject(jso, options, definitions, check, tie)
-    : JSSTAnyOf(check.c).is(jso)
+    : JSSTAnyOf(check.c, t.type({})).is(jso)
     ? handleAnyOfOrOneOf(jso, options, definitions, check, tie)
-    : JSSTOneOf(check.c).is(jso)
+    : JSSTOneOf(check.c, t.type({})).is(jso)
     ? handleAnyOfOrOneOf(jso, options, definitions, check, tie)
-    : JSSTNot(check.c).is(jso)
+    : JSSTNot(check.c, t.type({})).is(jso)
     ? handleNot(jso, definitions)
-    : JSSTAllOf(check.c).is(jso)
+    : JSSTAllOf(check.c, t.type({})).is(jso)
     ? handleAllOf(jso, options, definitions, check, tie)
-    : JSSTEmpty.is(jso)
+    : JSSTEmpty(t.type({})).is(jso)
     ? fc.anything()
     : check.c.is(jso)
     ? check.f(jso)
@@ -503,7 +505,7 @@ const makeHoist = ({
   );
 
 const internalDefault = <T>(
-  jso: JSONSchemaObject<T>,
+  jso: JSONSchemaObject<T, {}>,
   options: JSSTOptions,
   check: Check<T>
 ) =>
@@ -512,7 +514,7 @@ const internalDefault = <T>(
   );
 
 export const makeArbitrary = <T>(
-  jso: JSONSchemaObject<T>,
+  jso: JSONSchemaObject<T, {}>,
   check: Check<T>,
   options?: Partial<JSSTOptions>
 ) =>
@@ -532,19 +534,19 @@ const fcType = new t.Type<fc.Arbitrary<any>, fc.Arbitrary<any>>(
 );
 
 export const generateT = <T>(
-  jso: JSONSchemaObject<T>,
+  jso: JSONSchemaObject<T, {}>,
   check: Check<T>,
   options?: Partial<JSSTOptions>
 ) => fc.sample(makeArbitrary(jso, check, options))[0];
 
 export const generate = (
-  jso: JSONSchemaObject<fc.Arbitrary<any>>,
+  jso: JSONSchemaObject<fc.Arbitrary<any>, {}>,
   options?: Partial<JSSTOptions>
 ) => fc.sample(makeArbitrary(jso, { c: fcType, f: i => i }, options))[0];
 
-export type FastCheckSchema = JSONSchemaObject<fc.Arbitrary<any>>;
+export type FastCheckSchema = JSONSchemaObject<fc.Arbitrary<any>, {}>;
 
 export default (
-  jso: JSONSchemaObject<fc.Arbitrary<any>>,
+  jso: JSONSchemaObject<fc.Arbitrary<any>, {}>,
   options?: Partial<JSSTOptions>
 ) => makeArbitrary(jso, { c: fcType, f: i => i }, options);

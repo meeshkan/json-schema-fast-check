@@ -235,7 +235,7 @@ const Color = t.union([
 type Color = t.TypeOf<typeof Color>;
 
 test("generic version works", () => {
-  const schema: JSONSchemaObject<Color> = {
+  const schema: JSONSchemaObject<Color, {}> = {
     type: "object",
     properties: {
       foo: "blue",
