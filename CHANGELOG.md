@@ -1,5 +1,13 @@
 # Change Log
 
+## `v0.0.7`
+
+* Exposes fast-check type
+
+## `v0.0.6`
+
+* Typescript bugfix.
+
 ## `v0.0.5`
 
 * Uses generic extensions.

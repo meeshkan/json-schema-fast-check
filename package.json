@@ -1,6 +1,6 @@
 {
   "name": "json-schema-fast-check",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
@@ -24,10 +24,11 @@
     "typescript": "^3.5.3"
   },
   "scripts": {
+    "compile": "tsc",
     "lint:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest",
-    "prepublish": "yarn lint && yarn test",
+    "prepublish": "yarn compile && yarn lint && yarn test",
     "test:ci": "yarn run coverage --ci --maxWorkers=2  --reporters=default --reporters=jest-junit",
     "coverage": "yarn test --coverage",
     "coverage:upload": "codecov"

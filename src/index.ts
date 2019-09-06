@@ -532,7 +532,7 @@ export const makeArbitrary = <T, U extends object>(
     { ...DEFAULT_OPTIONS, ...(options ? options : {}) },
     check
   );
-const fcType = new t.Type<fc.Arbitrary<any>, fc.Arbitrary<any>>(
+export const fcType = new t.Type<fc.Arbitrary<any>, fc.Arbitrary<any>>(
   "fast-check",
   (input: unknown): input is fc.Arbitrary<any> => input instanceof fc.Arbitrary,
   (input, context) =>
