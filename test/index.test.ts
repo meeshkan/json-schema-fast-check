@@ -251,7 +251,8 @@ test("generic version works", () => {
   };
   const check = {
     c: Color,
-    f: (i: Color) => fc.constant(i)
+    f: (i: Color) => fc.constant(i),
+    u: t.type({})
   };
   fc.assert(
     fc.property(
