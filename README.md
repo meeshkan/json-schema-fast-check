@@ -79,3 +79,5 @@ There is plenty of stuff that is not implemented yet.  I'd really appreciate you
 * `if/then/else` syntax
 * proper use of `oneOf`
 * use objects as `dependencies` as well as arrays
+
+Please note that this project is governed by the [Unmock Community Code of Conduct](https://github.com/unmock/code-of-conduct). By participating in this project, you agree to abide by its terms.
