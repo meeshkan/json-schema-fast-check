@@ -69,15 +69,8 @@ Generates a single valid JSON object that conforms to the schema.
 
 The actual schema used here is not JSON Schema but rather a subset of JSON Schema called "The Subest of JSON Schema I Was Not Too Lazy To Define." I also added some `faker-js` sugar (see the tests).
 
-## Todo
+## Contributing
 
-There is plenty of stuff that is not implemented yet.  I'd really appreciate your help!
-
-* `minProperties` and `maxProperties` for objects
-* `additionalItems` for arrays
-* `tuples` bigger than length 16
-* `if/then/else` syntax
-* proper use of `oneOf`
-* use objects as `dependencies` as well as arrays
+Thanks for wanting to contribute! We will soon have a contributing page detaling how to contribute. Meanwhile, there are plenty of features that haven't been implemented yet. Please check out our [open issues](https://github.com/unmock/json-schema-fast-check/issues). We'd really appreciate your help!
 
 Please note that this project is governed by the [Unmock Community Code of Conduct](https://github.com/unmock/code-of-conduct). By participating in this project, you agree to abide by its terms.
