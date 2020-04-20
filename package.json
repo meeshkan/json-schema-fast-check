@@ -11,7 +11,7 @@
     "@types/node": "^12.7.2",
     "@types/prettier": "^1.18.2",
     "@types/uuid": "^3.4.5",
-    "codecov": "^3.5.0",
+    "codecov": "^3.6.5",
     "fp-ts": "^2.0.5",
     "io-ts-codegen": "^0.4.1",
     "jest": "^24.9.0",
